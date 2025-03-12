@@ -1,5 +1,4 @@
-package com.mycompany.practicabasededatos.dao;
-
+package com.mycompany.practicabasededatos.database;
 import com.mycompany.practicabasededatos.database.DatabaseConnection;
 import com.mycompany.practicabasededatos.modelo.Habitacion;
 import com.mycompany.practicabasededatos.modelo.EstadoHabitacion;
@@ -21,7 +20,7 @@ public class HabitacionDAO {
              PreparedStatement stmt = conn.prepareStatement(consulta)) {
 
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
+            try (ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
                 int id_habitacion = rs.getInt("id_habitacion");
@@ -35,6 +34,7 @@ public class HabitacionDAO {
                 double precio_noche_mp = rs.getDouble("precio_noche_mp");
 
                 habitacion = new Habitacion(id_habitacion, numero_habitacion, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp);
+            }
             }
 
         } catch (SQLException e) {
@@ -51,11 +51,9 @@ public class HabitacionDAO {
     public List<Habitacion> obtenerHabitaciones() {
         List<Habitacion> habitaciones = new ArrayList<>();
         String consulta = "SELECT * FROM HABITACION";
-
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(consulta)) {
-
-            ResultSet rs = stmt.executeQuery();
+             PreparedStatement stmt = conn.prepareStatement(consulta);
+             ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 int id_habitacion = rs.getInt("id_habitacion");

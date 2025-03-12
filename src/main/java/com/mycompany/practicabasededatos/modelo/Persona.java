@@ -13,7 +13,7 @@ public class Persona {
     private String email;
     private String direccion;
 
-    // Constructor
+    // Constructor completo
     public Persona(int id_persona, String documento_identidad, String nombre, String apellido, Date fecha_nacimiento, String telefono, String email, String direccion) {
         this.id_persona = id_persona;
         this.documento_identidad = documento_identidad;
@@ -25,7 +25,13 @@ public class Persona {
         this.direccion = direccion;
     }
 
+    // Constructor vacío
     public Persona() {
+    }
+
+    // Constructor con solo id_persona
+    public Persona(int id_persona) {
+        this.id_persona = id_persona;
     }
 
     // Getters y Setters

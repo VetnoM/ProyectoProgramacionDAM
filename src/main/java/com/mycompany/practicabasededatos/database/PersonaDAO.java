@@ -7,9 +7,9 @@ import java.util.ArrayList;
 public class PersonaDAO {
 
     // Método para obtener todas las personas
-    public static ArrayList<Persona> obtenerPersonas() {
+    public ArrayList<Persona> obtenerPersonas() {
         ArrayList<Persona> personas = new ArrayList<>();
-        String query = "SELECT * FROM PERSONA";
+        String query = "SELECT * FROM persona";
 
         try (Connection con = DatabaseConnection.getConnection();
              Statement stmt = con.createStatement();
@@ -18,7 +18,7 @@ public class PersonaDAO {
             while (rs.next()) {
                 Persona persona = new Persona(
                         rs.getInt("id_persona"),
-                        rs.getString("documento_identidad"),
+                        rs.getString("documento"),
                         rs.getString("nombre"),
                         rs.getString("apellido"),
                         rs.getDate("fecha_nacimiento"),
@@ -34,14 +34,14 @@ public class PersonaDAO {
         return personas;
     }
 
-    // Método para insertar una persona
+    // Método para insertar una persona y devolver el ID generado
     public int insertarPersona(Persona persona) {
-        String query = "INSERT INTO PERSONA (documento_identidad, nombre, apellido, fecha_nacimiento, telefono, email, direccion) " +
+        String query = "INSERT INTO persona (documento, nombre, apellido, fecha_nacimiento, telefono, email, direccion) " +
                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
-            int idGenerado= -1;
+        int idGenerado = -1;
 
         try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement pst = con.prepareStatement(query)) {
+             PreparedStatement pst = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             // Validación de datos antes de insertar
             if (persona.getDocumento_identidad() == null || persona.getNombre() == null || persona.getApellido() == null) {
                 System.out.println("Faltan datos obligatorios para la persona.");
@@ -59,11 +59,12 @@ public class PersonaDAO {
             int filasAfectadas = pst.executeUpdate(); 
             
             if (filasAfectadas > 0) {
-            ResultSet rs = pst.getGeneratedKeys(); // Obtener el ID generado
-            if (rs.next()) {
-                idGenerado = rs.getInt(1);
+                try (ResultSet rs = pst.getGeneratedKeys()) { // Obtener el ID generado
+                    if (rs.next()) {
+                        idGenerado = rs.getInt(1);
+                    }
+                }
             }
-        }
             
         } catch (SQLException e) {
             System.out.println("Error al insertar persona: " + e.getMessage());
@@ -71,9 +72,27 @@ public class PersonaDAO {
         return idGenerado;
     }
 
+    // Método para obtener el ID de una persona por su documento de identidad
+    public int obtenerID_persona(Persona p) {
+        String query = "SELECT id_persona FROM persona WHERE documento = ?";
+        int idGenerado = -1;
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement pst = con.prepareStatement(query)) {
+            pst.setString(1, p.getDocumento_identidad());
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    idGenerado = rs.getInt("id_persona");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al obtener ID de persona: " + e.getMessage());
+        }
+        return idGenerado;
+    }
+
     // Método para actualizar una persona
     public boolean actualizarPersona(Persona persona) {
-        String query = "UPDATE PERSONA SET documento_identidad = ?, nombre = ?, apellido = ?, fecha_nacimiento = ?, telefono = ?, email = ?, direccion = ? " +
+        String query = "UPDATE persona SET documento = ?, nombre = ?, apellido = ?, fecha_nacimiento = ?, telefono = ?, email = ?, direccion = ? " +
                        "WHERE id_persona = ?";
 
         try (Connection con = DatabaseConnection.getConnection();
@@ -98,7 +117,7 @@ public class PersonaDAO {
 
     // Método para eliminar una persona por su ID
     public boolean eliminarPersona(int idPersona) {
-        String query = "DELETE FROM PERSONA WHERE id_persona = ?";
+        String query = "DELETE FROM persona WHERE id_persona = ?";
 
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement pst = con.prepareStatement(query)) {
@@ -115,7 +134,7 @@ public class PersonaDAO {
     // Método para obtener una persona por su ID
     public Persona obtenerPersonaPorId(int idPersona) {
         Persona persona = null;
-        String query = "SELECT * FROM PERSONA WHERE id_persona = ?";
+        String query = "SELECT * FROM persona WHERE id_persona = ?";
 
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement pst = con.prepareStatement(query)) {
@@ -125,7 +144,7 @@ public class PersonaDAO {
                 if (rs.next()) {
                     persona = new Persona(
                             rs.getInt("id_persona"),
-                            rs.getString("documento_identidad"),
+                            rs.getString("documento"),
                             rs.getString("nombre"),
                             rs.getString("apellido"),
                             rs.getDate("fecha_nacimiento"),

@@ -9,6 +9,6 @@ package com.mycompany.practicabasededatos.modelo;
  * @author eric_
  */
 public enum EstadoTarea {
-    pendiente,
-    completada;
+    PENDIENTE, EN_PROCESO, COMPLETADA, CANCELADA
 }
+

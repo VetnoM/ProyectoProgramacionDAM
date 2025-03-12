@@ -9,8 +9,8 @@ package com.mycompany.practicabasededatos.modelo;
  * @author eric_
  */
 public enum EstadoLaboral {
-    Activo,
-    Baja,
-    Permiso;
+    ACTIVO,
+    BAJA,
+    PERMISO;
     
 }
