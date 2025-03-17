@@ -1,5 +1,6 @@
 package com.mycompany.practicabasededatos.modelo;
 
+// Importa las clases necesarias para manejar la conexión a la base de datos y las clases del modelo
 import com.mycompany.practicabasededatos.database.ClienteDAO;
 import com.mycompany.practicabasededatos.database.DatabaseConnection;
 import com.mycompany.practicabasededatos.database.EmpleadoDAO;
@@ -23,23 +24,23 @@ import javafx.scene.control.ListView;
 
 public class Modelo {
 
+    // Logger para registrar mensajes de error y depuración
     private static final Logger LOGGER = Logger.getLogger(Modelo.class.getName());
 
+    // Instancias de los DAOs para interactuar con la base de datos
     private PersonaDAO personaDAO = new PersonaDAO();
     private ClienteDAO clienteDAO = new ClienteDAO();
     private EmpleadoDAO empleadoDAO = new EmpleadoDAO();
     private TareaDAO tareaDAO = new TareaDAO();
-
     private HabitacionDAO habitacionDAO = new HabitacionDAO();
     private ReservaDAO reservaDAO = new ReservaDAO();
 
-
-    // Obtener tareas pendientes
+    // Método para obtener tareas pendientes
     public LinkedList<Tarea> obtenerTareasPendientes() {
         return tareaDAO.obtenerTareasPendientes();
     }
 
-    // Obtener tareas en proceso
+    // Método para obtener tareas en proceso
     public LinkedList<Tarea> obtenerTareasEnProceso() {
         return tareaDAO.obtenerTareasEnProceso();
     }
@@ -89,11 +90,9 @@ public class Modelo {
             listPersonas.getItems().add(p.getNombre() + " " + p.getApellido());
         }
     }
-    // APARTADO DE TAREAS
 
-
-      // Método para crear una tarea
-      public int crearTarea(String descripcion, Date fechaCreacion) {
+    // Método para crear una tarea
+    public int crearTarea(String descripcion, Date fechaCreacion) {
         try (Connection conn = DatabaseConnection.getConnection()) {
             return tareaDAO.crearTarea(descripcion, fechaCreacion);
         } catch (SQLException e) {
@@ -190,7 +189,6 @@ public class Modelo {
         return tareaDAO.asignarTareaAEmpleado(tarea, empleado);
     }
 
-
     // Método para obtener la lista de habitaciones
     public ObservableList<Habitacion> obtenerHabitaciones() {
         try {
@@ -202,8 +200,8 @@ public class Modelo {
         return FXCollections.observableArrayList();
     }
 
-     // Método para crear una habitación
-     public int crearHabitacion(Habitacion habitacion) {
+    // Método para crear una habitación
+    public int crearHabitacion(Habitacion habitacion) {
         try {
             return habitacionDAO.crearHabitacion(habitacion);
         } catch (SQLException e) {
@@ -211,7 +209,6 @@ public class Modelo {
         }
         return -1;
     }
-
 
     // Método para actualizar una habitación
     public boolean actualizarHabitacion(Habitacion habitacion) {
@@ -224,8 +221,8 @@ public class Modelo {
         return false;
     }
 
-     // Método para eliminar una habitación
-     public boolean eliminarHabitacion(int idHabitacion) {
+    // Método para eliminar una habitación
+    public boolean eliminarHabitacion(int idHabitacion) {
         try {
             habitacionDAO.eliminarHabitacion(idHabitacion);
             return true;
@@ -235,8 +232,8 @@ public class Modelo {
         return false;
     }
 
-     // Método para obtener la lista de reservas
-     public ObservableList<Reserva> obtenerReservas() {
+    // Método para obtener la lista de reservas
+    public ObservableList<Reserva> obtenerReservas() {
         try {
             List<Reserva> listaReservas = reservaDAO.obtenerReservas();
             return FXCollections.observableArrayList(listaReservas);
@@ -267,8 +264,8 @@ public class Modelo {
         return false;
     }
 
-     // Método para eliminar una reserva
-     public boolean eliminarReserva(int idReserva) {
+    // Método para eliminar una reserva
+    public boolean eliminarReserva(int idReserva) {
         try {
             reservaDAO.eliminarReserva(idReserva);
             return true;
