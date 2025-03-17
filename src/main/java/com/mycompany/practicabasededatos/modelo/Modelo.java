@@ -3,7 +3,9 @@ package com.mycompany.practicabasededatos.modelo;
 import com.mycompany.practicabasededatos.database.ClienteDAO;
 import com.mycompany.practicabasededatos.database.DatabaseConnection;
 import com.mycompany.practicabasededatos.database.EmpleadoDAO;
+import com.mycompany.practicabasededatos.database.HabitacionDAO;
 import com.mycompany.practicabasededatos.database.PersonaDAO;
+import com.mycompany.practicabasededatos.database.ReservaDAO;
 import com.mycompany.practicabasededatos.database.TareaDAO;
 
 import java.sql.Connection;
@@ -27,6 +29,10 @@ public class Modelo {
     private ClienteDAO clienteDAO = new ClienteDAO();
     private EmpleadoDAO empleadoDAO = new EmpleadoDAO();
     private TareaDAO tareaDAO = new TareaDAO();
+
+    private HabitacionDAO habitacionDAO = new HabitacionDAO();
+    private ReservaDAO reservaDAO = new ReservaDAO();
+
 
     // Obtener tareas pendientes
     public LinkedList<Tarea> obtenerTareasPendientes() {
@@ -182,5 +188,93 @@ public class Modelo {
     // Método para asignar una tarea a un empleado
     public boolean asignarTareaAEmpleado(Tarea tarea, Empleado empleado) {
         return tareaDAO.asignarTareaAEmpleado(tarea, empleado);
+    }
+
+
+    // Método para obtener la lista de habitaciones
+    public ObservableList<Habitacion> obtenerHabitaciones() {
+        try {
+            List<Habitacion> listaHabitaciones = habitacionDAO.obtenerHabitaciones();
+            return FXCollections.observableArrayList(listaHabitaciones);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al obtener las habitaciones", e);
+        }
+        return FXCollections.observableArrayList();
+    }
+
+     // Método para crear una habitación
+     public int crearHabitacion(Habitacion habitacion) {
+        try {
+            return habitacionDAO.crearHabitacion(habitacion);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al crear la habitación", e);
+        }
+        return -1;
+    }
+
+
+    // Método para actualizar una habitación
+    public boolean actualizarHabitacion(Habitacion habitacion) {
+        try {
+            habitacionDAO.actualizarHabitacion(habitacion);
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al actualizar la habitación", e);
+        }
+        return false;
+    }
+
+     // Método para eliminar una habitación
+     public boolean eliminarHabitacion(int idHabitacion) {
+        try {
+            habitacionDAO.eliminarHabitacion(idHabitacion);
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al eliminar la habitación", e);
+        }
+        return false;
+    }
+
+     // Método para obtener la lista de reservas
+     public ObservableList<Reserva> obtenerReservas() {
+        try {
+            List<Reserva> listaReservas = reservaDAO.obtenerReservas();
+            return FXCollections.observableArrayList(listaReservas);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al obtener las reservas", e);
+        }
+        return FXCollections.observableArrayList();
+    }
+
+    // Método para crear una reserva
+    public int crearReserva(Reserva reserva) {
+        try {
+            return reservaDAO.crearReserva(reserva);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al crear la reserva", e);
+        }
+        return -1;
+    }
+
+    // Método para actualizar una reserva
+    public boolean actualizarReserva(Reserva reserva) {
+        try {
+            reservaDAO.actualizarReserva(reserva);
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al actualizar la reserva", e);
+        }
+        return false;
+    }
+
+     // Método para eliminar una reserva
+     public boolean eliminarReserva(int idReserva) {
+        try {
+            reservaDAO.eliminarReserva(idReserva);
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al eliminar la reserva", e);
+        }
+        return false;
     }
 }

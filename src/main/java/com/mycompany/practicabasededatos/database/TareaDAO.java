@@ -13,7 +13,7 @@ public class TareaDAO {
 
     // Crear una nueva tarea y devolver su ID
     public int crearTarea(String descripcion, Date fechaCreacion) throws SQLException {
-        String sql = "INSERT INTO tareas (descripcion, fecha_creacion) VALUES (?, ?)";
+        String sql = "INSERT INTO tarea (descripcion, fecha_creacion) VALUES (?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, descripcion);
@@ -111,13 +111,13 @@ public class TareaDAO {
 
     public List<Tarea> obtenerTareas() throws SQLException {
         List<Tarea> tareas = new ArrayList<>();
-        String sql = "SELECT * FROM tareas";
+        String sql = "SELECT * FROM tarea";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 Tarea tarea = new Tarea(
-                        rs.getInt("id"),
+                        rs.getInt("id_tarea"),
                         rs.getString("descripcion"),
                         EstadoTarea.valueOf(rs.getString("estado")),
                         rs.getDate("fecha_creacion"),

@@ -5,7 +5,6 @@
 package com.mycompany.practicabasededatos;
 
 import com.mycompany.practicabasededatos.modelo.Modelo;
-import com.mycompany.practicabasededatos.modelo.Empleado;
 import com.mycompany.practicabasededatos.modelo.Tarea;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 
 public class CrearTareaController {
@@ -21,7 +21,11 @@ public class CrearTareaController {
     @FXML
     private DatePicker dpFechaCreacionTarea;
     @FXML
-    private ListView<Tarea> listTareas;
+    private ListView<String> listDescripcion;
+    @FXML
+    private ListView<String> listEstado;
+    @FXML
+    private ListView<String> listFechaCreacion;
 
     // Llamado al modelo
     Modelo modelo = new Modelo();
@@ -32,22 +36,25 @@ public class CrearTareaController {
         cargarTareasEnLista();
     }
 
-    // Método para cargar las tareas en la lista
+    // Método para cargar las tareas en las listas
     private void cargarTareasEnLista() {
         ObservableList<Tarea> tareas = FXCollections.observableArrayList(modelo.obtenerTareas());
-        listTareas.setItems(tareas);
+        
+        ObservableList<String> descripciones = FXCollections.observableArrayList();
+        ObservableList<String> estados = FXCollections.observableArrayList();
+        ObservableList<String> fechasCreacion = FXCollections.observableArrayList();
 
-        listTareas.setCellFactory(param -> new ListCell<Tarea>() {
-            @Override
-            protected void updateItem(Tarea tarea, boolean empty) {
-                super.updateItem(tarea, empty);
-                if (empty || tarea == null) {
-                    setText(null);
-                } else {
-                    setText("📌 " + tarea.getDescripcion() + " | Estado: " + tarea.getEstadoTarea());
-                }
-            }
-        });
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+
+        for (Tarea tarea : tareas) {
+            descripciones.add(tarea.getDescripcion());
+            estados.add(tarea.getEstadoTarea().toString());
+            fechasCreacion.add(formatter.format(tarea.getFecha_creacion()));
+        }
+
+        listDescripcion.setItems(descripciones);
+        listEstado.setItems(estados);
+        listFechaCreacion.setItems(fechasCreacion);
     }
 
     // Método para crear una tarea

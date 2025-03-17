@@ -11,22 +11,24 @@ package com.mycompany.practicabasededatos.modelo;
 public class Habitacion {
     private int id_habitacion;
     private String numero_habitacion;
+    private int id_reserva;
     private TipoHabitacion tipo;
+    private int capacidad;
     private EstadoHabitacion estado;
     private String descripcion;
     private double precio_noche_ad;
     private double precio_noche_mp;
-    private int capacidad;
-//constructor
-    public Habitacion(int id_habitacion, String numero_habitacion, TipoHabitacion tipo, EstadoHabitacion estado, String descripcion, double precio_noche_ad, double pprecio_noche_mp, int capacidad) {
+
+    public Habitacion(int id_habitacion, String numero_habitacion, int id_reserva, TipoHabitacion tipo, int capacidad, EstadoHabitacion estado, String descripcion, double precio_noche_ad, double precio_noche_mp) {
         this.id_habitacion = id_habitacion;
         this.numero_habitacion = numero_habitacion;
+        this.id_reserva = id_reserva;
         this.tipo = tipo;
+        this.capacidad = capacidad;
         this.estado = estado;
         this.descripcion = descripcion;
         this.precio_noche_ad = precio_noche_ad;
-        this.precio_noche_mp = pprecio_noche_mp;
-        this.capacidad = capacidad;
+        this.precio_noche_mp = precio_noche_mp;
     }
 
     public Habitacion() {
@@ -38,8 +40,6 @@ public class Habitacion {
     }
     //getter
 
-   
-
     public int getId_habitacion() {
         return id_habitacion;
     }
@@ -48,8 +48,16 @@ public class Habitacion {
         return numero_habitacion;
     }
 
+    public int getId_reserva() {
+        return id_reserva;
+    }
+
     public TipoHabitacion getTipo() {
         return tipo;
+    }
+
+    public int getCapacidad() {
+        return capacidad;
     }
 
     public EstadoHabitacion getEstado() {
@@ -67,10 +75,6 @@ public class Habitacion {
     public double getPrecio_noche_mp() {
         return precio_noche_mp;
     }
-
-    public int getCapacidad() {
-        return capacidad;
-    }
     
     //setter
 
@@ -82,8 +86,16 @@ public class Habitacion {
         this.numero_habitacion = numero_habitacion;
     }
 
+    public void setId_reserva(int id_reserva) {
+        this.id_reserva = id_reserva;
+    }
+
     public void setTipo(TipoHabitacion tipo) {
         this.tipo = tipo;
+    }
+
+    public void setCapacidad(int capacidad) {
+        this.capacidad = capacidad;
     }
 
     public void setEstado(EstadoHabitacion estado) {
@@ -98,13 +110,7 @@ public class Habitacion {
         this.precio_noche_ad = precio_noche_ad;
     }
 
-    public void setPrecio_noche_mp(double pprecio_noche_mp) {
-        this.precio_noche_mp = pprecio_noche_mp;
+    public void setPrecio_noche_mp(double precio_noche_mp) {
+        this.precio_noche_mp = precio_noche_mp;
     }
-
-    public void setCapacidad(int capacidad) {
-        this.capacidad = capacidad;
-    }
-
-  
 }

@@ -1,11 +1,10 @@
 package com.mycompany.practicabasededatos.database;
-import com.mycompany.practicabasededatos.database.DatabaseConnection;
+
 import com.mycompany.practicabasededatos.modelo.Habitacion;
 import com.mycompany.practicabasededatos.modelo.EstadoHabitacion;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.mycompany.practicabasededatos.modelo.TipoHabitacion;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +13,7 @@ public class HabitacionDAO {
     // Método para obtener una habitación por su ID
     public Habitacion obtenerHabitacionPorId(int id) {
         Habitacion habitacion = null;
-        String consulta = "SELECT * FROM HABITACION WHERE id_habitacion = ?";
+        String consulta = "SELECT * FROM habitacion WHERE id_habitacion = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(consulta)) {
@@ -22,127 +21,110 @@ public class HabitacionDAO {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
 
-            if (rs.next()) {
-                int id_habitacion = rs.getInt("id_habitacion");
-                String numero_habitacion = rs.getString("numero_habitacion");
-                String tipo = rs.getString("tipo");
-                int capacidad = rs.getInt("capacidad");
-                String estadoStr = rs.getString("estado");  // Obtener el estado como String
-                EstadoHabitacion estado = EstadoHabitacion.valueOf(estadoStr.toUpperCase());  // Convertir a enum
-                String descripcion = rs.getString("descripcion");
-                double precio_noche_ad = rs.getDouble("precio_noche_ad");
-                double precio_noche_mp = rs.getDouble("precio_noche_mp");
+                if (rs.next()) {
+                    int id_habitacion = rs.getInt("id_habitacion");
+                    String numero_habitacion = rs.getString("numero_habitacion");
+                    int id_reserva = rs.getInt("id_reserva");
+                    TipoHabitacion tipo = TipoHabitacion.valueOf(rs.getString("tipo").toUpperCase());
+                    int capacidad = rs.getInt("capacidad");
+                    EstadoHabitacion estado = EstadoHabitacion.valueOf(rs.getString("estado").toUpperCase());
+                    String descripcion = rs.getString("descripcion");
+                    double precio_noche_ad = rs.getDouble("precio_noche_ad");
+                    double precio_noche_mp = rs.getDouble("precio_noche_mp");
 
-                habitacion = new Habitacion(id_habitacion, numero_habitacion, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp);
-            }
+                    habitacion = new Habitacion(id_habitacion, numero_habitacion, id_reserva, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp);
+                }
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
-            // Esto se lanza si el estado en la base de datos no coincide con los valores del enum
-            System.out.println("Error: EstadoHabitacion no válido en la base de datos.");
+            // Esto se lanza si el estado o tipo en la base de datos no coincide con los valores del enum
+            System.out.println("Error: EstadoHabitacion o TipoHabitacion no válido en la base de datos.");
         }
 
         return habitacion;
     }
 
     // Método para obtener todas las habitaciones
-    public List<Habitacion> obtenerHabitaciones() {
+    public List<Habitacion> obtenerHabitaciones() throws SQLException {
         List<Habitacion> habitaciones = new ArrayList<>();
-        String consulta = "SELECT * FROM HABITACION";
+        String sql = "SELECT * FROM habitacion";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(consulta);
-             ResultSet rs = stmt.executeQuery()) {
-
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                int id_habitacion = rs.getInt("id_habitacion");
-                String numero_habitacion = rs.getString("numero_habitacion");
-                String tipo = rs.getString("tipo");
-                int capacidad = rs.getInt("capacidad");
-                String estadoStr = rs.getString("estado");  // Obtener el estado como String
-                EstadoHabitacion estado = EstadoHabitacion.valueOf(estadoStr.toUpperCase());  // Convertir a enum
-                String descripcion = rs.getString("descripcion");
-                double precio_noche_ad = rs.getDouble("precio_noche_ad");
-                double precio_noche_mp = rs.getDouble("precio_noche_mp");
-
-                Habitacion habitacion = new Habitacion(id_habitacion, numero_habitacion, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp);
+                Habitacion habitacion = new Habitacion(
+                        rs.getInt("id_habitacion"),
+                        rs.getString("numero_habitacion"),
+                        rs.getInt("id_reserva"),
+                        TipoHabitacion.valueOf(rs.getString("tipo").toUpperCase()),
+                        rs.getInt("capacidad"),
+                        EstadoHabitacion.valueOf(rs.getString("estado").toUpperCase()),
+                        rs.getString("descripcion"),
+                        rs.getDouble("precio_noche_ad"),
+                        rs.getDouble("precio_noche_mp")
+                );
                 habitaciones.add(habitacion);
             }
-
-        } catch (SQLException e) {
-            System.out.println("Error al obtener la habitacion "+ e);
-        } catch (IllegalArgumentException e) {
-            // Esto se lanza si el estado en la base de datos no coincide con los valores del enum
-            System.out.println("Error: EstadoHabitacion no válido en la base de datos.");
         }
-
         return habitaciones;
     }
 
     // Método para agregar una habitación
-    public boolean agregarHabitacion(Habitacion habitacion) {
-        String consulta = "INSERT INTO HABITACION (numero_habitacion, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp) VALUES (?, ?, ?, ?, ?, ?, ?)";
-
+    public int crearHabitacion(Habitacion habitacion) throws SQLException {
+        String sql = "INSERT INTO habitacion (numero_habitacion, id_reserva, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(consulta)) {
-
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, habitacion.getNumero_habitacion());
-            stmt.setString(2, habitacion.getTipo().toString());
-            stmt.setInt(3, habitacion.getCapacidad());
-            stmt.setString(4, habitacion.getEstado().toString());  // Convertir el enum a String
-            stmt.setString(5, habitacion.getDescripcion());
-            stmt.setDouble(6, habitacion.getPrecio_noche_ad());
-            stmt.setDouble(7, habitacion.getPrecio_noche_mp());
+            stmt.setInt(2, habitacion.getId_reserva());
+            stmt.setString(3, habitacion.getTipo().name());
+            stmt.setInt(4, habitacion.getCapacidad());
+            stmt.setString(5, habitacion.getEstado().name());
+            stmt.setString(6, habitacion.getDescripcion());
+            stmt.setDouble(7, habitacion.getPrecio_noche_ad());
+            stmt.setDouble(8, habitacion.getPrecio_noche_mp());
+            int affectedRows = stmt.executeUpdate();
 
-            int filasAfectadas = stmt.executeUpdate();
-            return filasAfectadas > 0;
+            if (affectedRows == 0) {
+                throw new SQLException("Creating habitacion failed, no rows affected.");
+            }
 
-        } catch (SQLException e) {
-            System.out.println("Error al agregar habitacion "+ e);
-            return false;
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Creating habitacion failed, no ID obtained.");
+                }
+            }
         }
     }
 
     // Método para actualizar una habitación
-    public boolean actualizarHabitacion(Habitacion habitacion) {
-        String consulta = "UPDATE HABITACION SET numero_habitacion = ?, tipo = ?, capacidad = ?, estado = ?, descripcion = ?, precio_noche_ad = ?, precio_noche_mp = ? WHERE id_habitacion = ?";
-
+    public void actualizarHabitacion(Habitacion habitacion) throws SQLException {
+        String sql = "UPDATE habitacion SET numero_habitacion = ?, id_reserva = ?, tipo = ?, capacidad = ?, estado = ?, descripcion = ?, precio_noche_ad = ?, precio_noche_mp = ? WHERE id_habitacion = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(consulta)) {
-
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, habitacion.getNumero_habitacion());
-            stmt.setString(2, habitacion.getTipo().toString());
-            stmt.setInt(3, habitacion.getCapacidad());
-            stmt.setString(4, habitacion.getEstado().toString());  // Convertir el enum a String
-            stmt.setString(5, habitacion.getDescripcion());
-            stmt.setDouble(6, habitacion.getPrecio_noche_ad());
-            stmt.setDouble(7, habitacion.getPrecio_noche_mp());
-            stmt.setInt(8, habitacion.getId_habitacion());
-
-            int filasAfectadas = stmt.executeUpdate();
-            return filasAfectadas > 0;
-
-        } catch (SQLException e) {
-            System.out.println("Error al actualizar"+ e);
-            return false;
+            stmt.setInt(2, habitacion.getId_reserva());
+            stmt.setString(3, habitacion.getTipo().name());
+            stmt.setInt(4, habitacion.getCapacidad());
+            stmt.setString(5, habitacion.getEstado().name());
+            stmt.setString(6, habitacion.getDescripcion());
+            stmt.setDouble(7, habitacion.getPrecio_noche_ad());
+            stmt.setDouble(8, habitacion.getPrecio_noche_mp());
+            stmt.setInt(9, habitacion.getId_habitacion());
+            stmt.executeUpdate();
         }
     }
 
     // Método para eliminar una habitación
-    public boolean eliminarHabitacion(int id) {
-        String consulta = "DELETE FROM HABITACION WHERE id_habitacion = ?";
-
+    public void eliminarHabitacion(int idHabitacion) throws SQLException {
+        String sql = "DELETE FROM habitacion WHERE id_habitacion = ?";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(consulta)) {
-
-            stmt.setInt(1, id);
-            int filasAfectadas = stmt.executeUpdate();
-            return filasAfectadas > 0;
-
-        } catch (SQLException e) {
-            System.out.println("Error al eliminar "+e);
-            return false;
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idHabitacion);
+            stmt.executeUpdate();
         }
     }
 }

@@ -39,7 +39,7 @@ public class BienvenidaController  {
     
     @FXML
     private void switchFxml(String nomFxml) throws IOException {
-      
+        anchorPaneCentre.getChildren().clear();
         FXMLLoader fxmlPersones = new FXMLLoader(getClass().getResource(nomFxml));
         AnchorPane vistaAcarregar = fxmlPersones.load();
 
