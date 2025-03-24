@@ -9,5 +9,5 @@ package com.mycompany.practicabasededatos.modelo;
  * @author eric_
  */
 public enum TipoReserva {
-    AD,MP;
+    SIN_RESERVA,AD,MP;
 }

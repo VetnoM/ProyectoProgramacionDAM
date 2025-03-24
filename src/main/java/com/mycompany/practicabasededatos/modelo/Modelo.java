@@ -63,6 +63,25 @@ public class Modelo {
             LOGGER.log(Level.SEVERE, "Error al enviar los datos al clienteDAO", ex);
         }
     }
+    // Método para obtener clientes
+    public ObservableList<Cliente> obtenerClientes() {
+        try {
+            List<Cliente> listaClientes = clienteDAO.obtenerClientes(); // Llama al DAO para obtener los clientes
+            return FXCollections.observableArrayList(listaClientes);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al obtener los clientes", e);
+        }
+        return FXCollections.observableArrayList(); // Devuelve una lista vacía en caso de error
+    }
+
+    public int obtenerIdClientePorDni(String dni) {
+        try {
+            return clienteDAO.obtenerIdClientePorDni(dni); // Llama al DAO para buscar el ID
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al obtener el ID del cliente por DNI", e);
+        }
+        return -1; // Devuelve -1 si ocurre un error
+    }
 
     // Método para insertar un empleado
     public void insertarEmpleado(int idPersona, Empleado empleado) {
@@ -243,16 +262,14 @@ public class Modelo {
         return FXCollections.observableArrayList();
     }
 
-    // Método para crear una reserva
-    public int crearReserva(Reserva reserva) {
+    public int obtenerProximoIdReserva() {
         try {
-            return reservaDAO.crearReserva(reserva);
+            return reservaDAO.obtenerProximoIdReserva();
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error al crear la reserva", e);
+            LOGGER.log(Level.SEVERE, "Error al obtener el último ID de reserva", e);
         }
-        return -1;
+        return 0; // Devuelve 0 si ocurre un error
     }
-
     // Método para actualizar una reserva
     public boolean actualizarReserva(Reserva reserva) {
         try {
@@ -264,14 +281,39 @@ public class Modelo {
         return false;
     }
 
-    // Método para eliminar una reserva
-    public boolean eliminarReserva(int idReserva) {
-        try {
-            reservaDAO.eliminarReserva(idReserva);
-            return true;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error al eliminar la reserva", e);
-        }
-        return false;
+
+ // Método para obtener reservas desde la base de datos
+public ObservableList<Reserva> obtenerReserves() {
+    try {
+        // Llama al método del DAO para obtener las reservas
+        List<Reserva> listaReservas = reservaDAO.obtenerReservas();
+        return FXCollections.observableArrayList(listaReservas);
+    } catch (SQLException e) {
+        LOGGER.log(Level.SEVERE, "Error al obtener las reservas desde la base de datos", e);
     }
+    return FXCollections.observableArrayList(); // Devuelve una lista vacía en caso de error
 }
+    
+        // Método para actualizar una reserva (simulado)
+        public boolean actualitzarReserva(Reserva reserva) {
+            // Lógica para actualizar la reserva en la base de datos
+            System.out.println("Reserva actualizada: " + reserva.getId_reserva());
+            return true; // Simulación de éxito
+        }
+    
+        // Método para eliminar una reserva (simulado)
+        public boolean eliminarReserva(int idReserva) {
+            // Lógica para eliminar la reserva en la base de datos
+            System.out.println("Reserva eliminada: " + idReserva);
+            return true; // Simulación de éxito
+        }
+    
+        // Método para crear una reserva (simulado)
+        public boolean crearReserva(Reserva reserva) {
+            // Lógica para insertar la reserva en la base de datos
+            System.out.println("Reserva creada: " + reserva.getId_reserva());
+            return true; // Simulación de éxito
+        }
+    }
+
+

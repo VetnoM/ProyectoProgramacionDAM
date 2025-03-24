@@ -77,24 +77,24 @@ public class HabitacionDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, habitacion.getNumero_habitacion());
-            stmt.setInt(2, habitacion.getId_reserva());
+            stmt.setInt(2, habitacion.getId_reserva() != null ? habitacion.getId_reserva() : 0); // Usa 0 como predeterminado
             stmt.setString(3, habitacion.getTipo().name());
             stmt.setInt(4, habitacion.getCapacidad());
             stmt.setString(5, habitacion.getEstado().name());
             stmt.setString(6, habitacion.getDescripcion());
             stmt.setDouble(7, habitacion.getPrecio_noche_ad());
             stmt.setDouble(8, habitacion.getPrecio_noche_mp());
+    
             int affectedRows = stmt.executeUpdate();
-
             if (affectedRows == 0) {
-                throw new SQLException("Creating habitacion failed, no rows affected.");
+                throw new SQLException("No se pudo crear la habitación. Ninguna fila fue afectada.");
             }
-
+    
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getInt(1);
                 } else {
-                    throw new SQLException("Creating habitacion failed, no ID obtained.");
+                    throw new SQLException("No se pudo crear la habitación. No se obtuvo el ID.");
                 }
             }
         }
@@ -114,7 +114,14 @@ public class HabitacionDAO {
             stmt.setDouble(7, habitacion.getPrecio_noche_ad());
             stmt.setDouble(8, habitacion.getPrecio_noche_mp());
             stmt.setInt(9, habitacion.getId_habitacion());
-            stmt.executeUpdate();
+    
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("No se pudo actualizar la habitación. Ninguna fila fue afectada.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Imprime el error en la consola
+            throw e; // Lanza la excepción para manejarla en niveles superiores
         }
     }
 

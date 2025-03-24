@@ -7,11 +7,9 @@ import com.mycompany.practicabasededatos.modelo.Cliente;
 import com.mycompany.practicabasededatos.modelo.Empleado;
 import com.mycompany.practicabasededatos.modelo.EstadoLaboral;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 
-import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
 

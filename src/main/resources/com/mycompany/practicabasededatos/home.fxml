@@ -26,6 +26,11 @@
                         <MenuItem mnemonicParsing="false" text="Asignar Tareas" />
                   </items>
                 </Menu>
+                  <Menu mnemonicParsing="false" text="Habitacion">
+                    <items>
+                      <MenuItem mnemonicParsing="false" onAction="#cambiarHabitacion" text="Gestion Habitacion" />
+                    </items>
+                  </Menu>
               </menus>
             </MenuBar>
          </top>

@@ -27,7 +27,9 @@ public class BienvenidaController  {
     private void cambiarAltaPersonas() throws IOException {
         switchFxml("primary.fxml");
     }
-
+    
+    
+// tareas
     @FXML
     private void cambiarCrearTarea() throws IOException {
         switchFxml("crearTarea.fxml");
@@ -35,6 +37,13 @@ public class BienvenidaController  {
     @FXML
     private void cambiarAsignarTarea() throws IOException {
         switchFxml("asignarTarea.fxml");
+    }
+    
+    // habitacion
+    
+      @FXML
+    private void cambiarHabitacion() throws IOException {
+        switchFxml("habitacion.fxml");
     }
     
     @FXML
@@ -45,4 +54,6 @@ public class BienvenidaController  {
 
         anchorPaneCentre.getChildren().add(vistaAcarregar);
     }
+    
+    
 }

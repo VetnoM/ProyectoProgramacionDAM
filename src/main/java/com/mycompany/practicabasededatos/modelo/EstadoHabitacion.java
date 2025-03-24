@@ -9,8 +9,9 @@ package com.mycompany.practicabasededatos.modelo;
  * @author eric_
  */
 public enum EstadoHabitacion {
-    disponible,
-    ocupada,
-    En_limpieza;
+    DISPONIBLE,
+    OCUPADA,
+    LIMPIEZA,
+    RESERVADA;
     
 }

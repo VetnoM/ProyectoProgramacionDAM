@@ -11,7 +11,7 @@ package com.mycompany.practicabasededatos.modelo;
 public class Habitacion {
     private int id_habitacion;
     private String numero_habitacion;
-    private int id_reserva;
+    private Integer id_reserva;
     private TipoHabitacion tipo;
     private int capacidad;
     private EstadoHabitacion estado;
@@ -48,7 +48,7 @@ public class Habitacion {
         return numero_habitacion;
     }
 
-    public int getId_reserva() {
+    public Integer getId_reserva() {
         return id_reserva;
     }
 

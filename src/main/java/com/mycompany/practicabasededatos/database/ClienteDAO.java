@@ -65,6 +65,20 @@ public class ClienteDAO {
         // Devuelve la lista de clientes
         return clientes;
     }
+    // Método para obtener un cliente por su ID
+    public int obtenerIdClientePorDni(String dni) throws SQLException {
+        String sql = "SELECT id_cliente FROM cliente c JOIN persona p ON c.id_persona = p.id_persona WHERE p.dni = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, dni);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id_cliente");
+                }
+            }
+        }
+        return -1; // Devuelve -1 si no se encuentra el cliente
+    }
 
     // Método para actualizar un cliente
     public void actualizarCliente(Cliente cliente) throws SQLException {
