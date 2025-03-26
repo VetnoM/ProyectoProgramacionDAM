@@ -22,7 +22,7 @@ public class BienvenidaController  {
     @FXML
     AnchorPane anchorPanePrincipal;
     
-    
+    // cambiar a personas
       @FXML
     private void cambiarAltaPersonas() throws IOException {
         switchFxml("primary.fxml");
@@ -44,6 +44,12 @@ public class BienvenidaController  {
       @FXML
     private void cambiarHabitacion() throws IOException {
         switchFxml("habitacion.fxml");
+    }
+
+    //cambiar a reserva
+    @FXML
+    private void cambiarReservas() throws IOException {
+        switchFxml("reserva.fxml");
     }
     
     @FXML

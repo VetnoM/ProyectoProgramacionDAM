@@ -10,7 +10,7 @@ import java.util.List;
 public class ClienteDAO {
 
     // Método para insertar un cliente
-    public void insertarCliente(Cliente cliente) throws SQLException {
+   public void insertarCliente(Cliente cliente) throws SQLException {
         // Consulta SQL para insertar un nuevo cliente en la tabla 'cliente'
         String sql = "INSERT INTO cliente (id_persona, tipo_cliente, tarjeta_credito, fecha_registro) VALUES (?, ?, ?, ?)";
 

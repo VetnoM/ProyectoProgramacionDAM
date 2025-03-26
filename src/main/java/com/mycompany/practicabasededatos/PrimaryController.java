@@ -1,5 +1,8 @@
 package com.mycompany.practicabasededatos;
 
+import com.mycompany.practicabasededatos.database.DatabaseConnection;
+import com.mycompany.practicabasededatos.database.PersonaDAO;
+import com.mycompany.practicabasededatos.database.TareaDAO;
 import com.mycompany.practicabasededatos.modelo.Modelo;
 import com.mycompany.practicabasededatos.modelo.Persona;
 import com.mycompany.practicabasededatos.modelo.TipoCliente;
@@ -8,16 +11,13 @@ import com.mycompany.practicabasededatos.modelo.Empleado;
 import com.mycompany.practicabasededatos.modelo.EstadoLaboral;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class PrimaryController {
-    //panel principal
-    @FXML
-    AnchorPane anchorPaneCentre;
-    //datos para crear persona
     @FXML
     private ComboBox<String> cmbTipoPersona;
     @FXML
@@ -52,9 +52,16 @@ public class PrimaryController {
     @FXML
     private Button btnRetroceder;
 
+    // Campos para agregar Tareas
+    @FXML
+    private TextField txtDescripcionTarea, txtDocumentoEmpleado;
+    @FXML
+    private DatePicker dpFechaEjecucionTarea;
+    @FXML
+    private Button btnCrearTarea, btnAsignarTarea;
+
     // Llamado al modelo
     Modelo modelo = new Modelo();
-
 
     @FXML
     public void initialize() {
@@ -66,18 +73,14 @@ public class PrimaryController {
         cmbTipoCliente.getItems().addAll("REGULAR", "VIP");
 
         // Configurar ComboBox de estado laboral
-        cmbEstadoLaboral.getItems().addAll("Activo", "Baja", "Permiso");
+        cmbEstadoLaboral.getItems().addAll("Activo", "Inactivo", "Suspendido");
 
         // Deshabilitar todos los campos excepto el ComboBox de tipo de persona
         deshabilitarCampos();
-
-        // Cargar lista de personas
-        modelo.cargarListaPersonas(listPersonas);
-
-   
     }
 
-    // Método para deshabilitar todos los campos excepto el ComboBox de tipo de persona
+    // Método para deshabilitar todos los campos excepto el ComboBox de tipo de
+    // persona
     private void deshabilitarCampos() {
         // Cliente
         lblTipoCliente.setDisable(true);
@@ -107,9 +110,6 @@ public class PrimaryController {
         txtEmail.setDisable(true);
         txtDireccion.setDisable(true);
         dpFechaNacimiento.setDisable(true);
-
-      
- 
     }
 
     // Método para habilitar los campos según el tipo de persona seleccionado
@@ -167,8 +167,6 @@ public class PrimaryController {
             cmbEstadoLaboral.setDisable(false);
             tituloEmpleado.setDisable(false);
         }
-
-
     }
 
     // Método para cambiar la vista según el tipo de persona
@@ -176,19 +174,8 @@ public class PrimaryController {
         deshabilitarCampos(); // Deshabilita todos los campos antes de actualizar
         habilitarCampos(); // Habilita los campos correspondientes según la selección
     }
+    // Método para cargar la lista de personas desde la base de datos
 
-    // // Método para cargar la lista de personas desde la base de datos
-    // private void cargarListaPersonas() {
-    //     ArrayList<Persona> personas = modelo.obtenerPersonas();
-    //     if (personas != null) {
-    //         listPersonas.getItems().clear();
-    //         for (Persona p : personas) {
-    //             listPersonas.getItems().add(p.getNombre() + " " + p.getApellido());
-    //         }
-    //     } else {
-    //         System.out.println("No se pudieron obtener las personas.");
-    //     }
-    // }
 
     @FXML
     private void agregarUsuario() {
@@ -203,7 +190,8 @@ public class PrimaryController {
 
         String tipoSeleccionado = cmbTipoPersona.getValue();
 
-        if (documento.isEmpty() || nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || email.isEmpty() || direccion.isEmpty() || fechaNacimiento == null || tipoSeleccionado == null) {
+        if (documento.isEmpty() || nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || email.isEmpty()
+                || direccion.isEmpty() || fechaNacimiento == null || tipoSeleccionado == null) {
             mostrarAlertaError("Error", "Por favor, completa todos los campos.");
             return;
         }
@@ -213,7 +201,8 @@ public class PrimaryController {
         int idPersona = modelo.insertarPersona(persona);
 
         if (idPersona > 0) { // Si la inserción fue exitosa
-            // Agregar detalles adicionales dependiendo del tipo de persona (Cliente o Empleado)
+            // Agregar detalles adicionales dependiendo del tipo de persona (Cliente o
+            // Empleado)
             if ("Cliente".equals(tipoSeleccionado) || "Ambos".equals(tipoSeleccionado)) {
                 String tipoCliente = cmbTipoCliente.getValue();
                 if (tipoCliente == null) {
@@ -222,7 +211,8 @@ public class PrimaryController {
                 }
                 String tarjetaCredito = txtTarjetaCredito.getText();
                 Date fechaRegistro = Date.valueOf(dpFechaRegistro.getValue());
-                Cliente cliente = new Cliente(idPersona, fechaRegistro, tarjetaCredito, TipoCliente.valueOf(tipoCliente.toUpperCase()));
+                Cliente cliente = new Cliente(idPersona, fechaRegistro, tarjetaCredito,
+                        TipoCliente.valueOf(tipoCliente.toUpperCase()));
                 modelo.insertarCliente(idPersona, cliente);
             }
 
@@ -245,7 +235,8 @@ public class PrimaryController {
                     return;
                 }
                 Date fechaContratacion = Date.valueOf(dpFechaContratacion.getValue());
-                Empleado empleado = new Empleado(idPersona, lugarTrabajo, salario, EstadoLaboral.valueOf(estadoLaboral.toUpperCase()), fechaContratacion);
+                Empleado empleado = new Empleado(idPersona, lugarTrabajo, salario,
+                        EstadoLaboral.valueOf(estadoLaboral.toUpperCase()), fechaContratacion);
                 modelo.insertarEmpleado(idPersona, empleado);
             }
 
@@ -269,6 +260,43 @@ public class PrimaryController {
         }
     }
 
+    // Método para crear una tarea
+    @FXML
+    private void crearYAsignarTarea() {
+        String descripcion = txtDescripcionTarea.getText();
+        Date fechaEjecucion = (dpFechaEjecucionTarea.getValue() != null) ? Date.valueOf(dpFechaEjecucionTarea.getValue()) : null;
+    
+        if (descripcion.isEmpty()) {
+            mostrarAlertaError("Error", "Por favor, ingresa la descripción de la tarea.");
+            return;
+        }
+    
+        String documentoEmpleado = txtDocumentoEmpleado.getText();
+        if (documentoEmpleado.isEmpty()) {
+            mostrarAlertaError("Error", "Por favor, ingresa el documento del empleado.");
+            return;
+        }
+    
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            TareaDAO tareaDAO = new TareaDAO();
+            int idTarea = tareaDAO.crearTarea(descripcion, fechaEjecucion);
+    
+            if (idTarea > 0) { // Si la tarea se creó correctamente
+                boolean asignada = tareaDAO.asignarTarea(documentoEmpleado, idTarea);
+                if (asignada) {
+                    mostrarAlertaInformacion("Éxito", "Tarea creada y asignada correctamente.");
+                } else {
+                    mostrarAlertaError("Error", "No se pudo asignar la tarea.");
+                }
+            } else {
+                mostrarAlertaError("Error", "No se pudo crear la tarea.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarAlertaError("Error", "Ocurrió un problema al asignar la tarea.");
+        }
+    }
+    
 
     // Método para mostrar alerta de información
     public static void mostrarAlertaInformacion(String titulo, String mensaje) {

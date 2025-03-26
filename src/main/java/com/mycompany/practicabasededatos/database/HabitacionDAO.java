@@ -24,7 +24,6 @@ public class HabitacionDAO {
                 if (rs.next()) {
                     int id_habitacion = rs.getInt("id_habitacion");
                     String numero_habitacion = rs.getString("numero_habitacion");
-                    int id_reserva = rs.getInt("id_reserva");
                     TipoHabitacion tipo = TipoHabitacion.valueOf(rs.getString("tipo").toUpperCase());
                     int capacidad = rs.getInt("capacidad");
                     EstadoHabitacion estado = EstadoHabitacion.valueOf(rs.getString("estado").toUpperCase());
@@ -32,7 +31,7 @@ public class HabitacionDAO {
                     double precio_noche_ad = rs.getDouble("precio_noche_ad");
                     double precio_noche_mp = rs.getDouble("precio_noche_mp");
 
-                    habitacion = new Habitacion(id_habitacion, numero_habitacion, id_reserva, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp);
+                    habitacion = new Habitacion(id_habitacion, numero_habitacion, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp);
                 }
             }
 
@@ -57,7 +56,6 @@ public class HabitacionDAO {
                 Habitacion habitacion = new Habitacion(
                         rs.getInt("id_habitacion"),
                         rs.getString("numero_habitacion"),
-                        rs.getInt("id_reserva"),
                         TipoHabitacion.valueOf(rs.getString("tipo").toUpperCase()),
                         rs.getInt("capacidad"),
                         EstadoHabitacion.valueOf(rs.getString("estado").toUpperCase()),
@@ -73,17 +71,17 @@ public class HabitacionDAO {
 
     // Método para agregar una habitación
     public int crearHabitacion(Habitacion habitacion) throws SQLException {
-        String sql = "INSERT INTO habitacion (numero_habitacion, id_reserva, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO habitacion (numero_habitacion, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, habitacion.getNumero_habitacion());
-            stmt.setInt(2, habitacion.getId_reserva() != null ? habitacion.getId_reserva() : 0); // Usa 0 como predeterminado
-            stmt.setString(3, habitacion.getTipo().name());
-            stmt.setInt(4, habitacion.getCapacidad());
-            stmt.setString(5, habitacion.getEstado().name());
-            stmt.setString(6, habitacion.getDescripcion());
-            stmt.setDouble(7, habitacion.getPrecio_noche_ad());
-            stmt.setDouble(8, habitacion.getPrecio_noche_mp());
+            stmt.setString(2, habitacion.getTipo().name());
+            stmt.setInt(3, habitacion.getCapacidad());
+            stmt.setString(4, habitacion.getEstado().name());
+            stmt.setString(5, habitacion.getDescripcion());
+            stmt.setDouble(6, habitacion.getPrecio_noche_ad());
+            stmt.setDouble(7, habitacion.getPrecio_noche_mp());
     
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -102,26 +100,23 @@ public class HabitacionDAO {
 
     // Método para actualizar una habitación
     public void actualizarHabitacion(Habitacion habitacion) throws SQLException {
-        String sql = "UPDATE habitacion SET numero_habitacion = ?, id_reserva = ?, tipo = ?, capacidad = ?, estado = ?, descripcion = ?, precio_noche_ad = ?, precio_noche_mp = ? WHERE id_habitacion = ?";
+        String sql = "UPDATE habitacion SET numero_habitacion = ?, tipo = ?, capacidad = ?, estado = ?, descripcion = ?, precio_noche_ad = ?, precio_noche_mp = ? " +
+                     "WHERE id_habitacion = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, habitacion.getNumero_habitacion());
-            stmt.setInt(2, habitacion.getId_reserva());
-            stmt.setString(3, habitacion.getTipo().name());
-            stmt.setInt(4, habitacion.getCapacidad());
-            stmt.setString(5, habitacion.getEstado().name());
-            stmt.setString(6, habitacion.getDescripcion());
-            stmt.setDouble(7, habitacion.getPrecio_noche_ad());
-            stmt.setDouble(8, habitacion.getPrecio_noche_mp());
-            stmt.setInt(9, habitacion.getId_habitacion());
+            stmt.setString(2, habitacion.getTipo().name());
+            stmt.setInt(3, habitacion.getCapacidad());
+            stmt.setString(4, habitacion.getEstado().name());
+            stmt.setString(5, habitacion.getDescripcion());
+            stmt.setDouble(6, habitacion.getPrecio_noche_ad());
+            stmt.setDouble(7, habitacion.getPrecio_noche_mp());
+            stmt.setInt(8, habitacion.getId_habitacion());
     
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
                 throw new SQLException("No se pudo actualizar la habitación. Ninguna fila fue afectada.");
             }
-        } catch (SQLException e) {
-            e.printStackTrace(); // Imprime el error en la consola
-            throw e; // Lanza la excepción para manejarla en niveles superiores
         }
     }
 

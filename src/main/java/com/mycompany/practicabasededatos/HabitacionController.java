@@ -67,11 +67,9 @@ public class HabitacionController {
                 if (empty || habitacion == null) {
                     setText(null);
                 } else {
-                    // Mostrar "SIN RESERVA" o "RESERVADA" según el estado de la reserva
-                    String reservaTexto = (habitacion.getId_reserva() == null || habitacion.getId_reserva() == 0)
-                            ? "SIN RESERVA"
-                            : "RESERVADA";
-                    setText("Habitación " + habitacion.getNumero_habitacion() + " - " + habitacion.getTipo() + " (" + reservaTexto + ")");
+                    // Mostrar el estado directamente desde el campo "estado"
+                    String estadoTexto = habitacion.getEstado().toString(); // Convertir el estado a texto
+                    setText("Habitación " + habitacion.getNumero_habitacion() + " - " + habitacion.getTipo() + " (" + estadoTexto + ")");
                 }
             }
         });
@@ -147,10 +145,8 @@ public class HabitacionController {
             double precioNocheAD = Double.parseDouble(txtPrecioNocheAD.getText());
             double precioNocheMP = Double.parseDouble(txtPrecioNocheMP.getText());
     
-            // Usa 0 como id_reserva predeterminado para "SIN RESERVA"
-            int idReserva = 0;
-    
-            Habitacion habitacion = new Habitacion(0, numeroHabitacion, idReserva, tipoHabitacion, capacidad, estado, descripcion, precioNocheAD, precioNocheMP);
+            // Crear la habitación con el estado seleccionado
+            Habitacion habitacion = new Habitacion(0, numeroHabitacion, tipoHabitacion, capacidad, estado, descripcion, precioNocheAD, precioNocheMP);
             int idHabitacion = modelo.crearHabitacion(habitacion);
     
             if (idHabitacion > 0) {
@@ -165,7 +161,6 @@ public class HabitacionController {
             mostrarAlertaError("Error", "Por favor, ingresa valores válidos en los campos.");
         }
     }
-
     // Método para guardar cambios en una habitación
     @FXML
     private void guardarCambios() {
@@ -184,13 +179,10 @@ public class HabitacionController {
             double precioNocheAD = Double.parseDouble(txtPrecioNocheAD.getText());
             double precioNocheMP = Double.parseDouble(txtPrecioNocheMP.getText());
     
-            // Usa 0 si id_reserva es null
-            int idReserva = habitacionSeleccionada.getId_reserva() != null ? habitacionSeleccionada.getId_reserva() : 0;
-    
+            // Actualizar la habitación seleccionada
             Habitacion habitacionActualizada = new Habitacion(
                 habitacionSeleccionada.getId_habitacion(),
                 numeroHabitacion,
-                idReserva,
                 tipoHabitacion,
                 capacidad,
                 estado,

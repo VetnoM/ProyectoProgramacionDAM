@@ -31,6 +31,11 @@
                       <MenuItem mnemonicParsing="false" onAction="#cambiarHabitacion" text="Gestion Habitacion" />
                     </items>
                   </Menu>
+                  <Menu mnemonicParsing="false" text="Reserva">
+                    <items>
+                      <MenuItem mnemonicParsing="false" onAction="#cambiarReservas" text="Vista de reservas" />
+                    </items>
+                  </Menu>
               </menus>
             </MenuBar>
          </top>

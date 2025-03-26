@@ -7,8 +7,10 @@ com\mycompany\practicabasededatos\modelo\TipoHabitacion.class
 com\mycompany\practicabasededatos\ReservaController.class
 com\mycompany\practicabasededatos\database\DatabaseConnection.class
 module-info.class
+com\mycompany\practicabasededatos\FacturaController.class
 com\mycompany\practicabasededatos\modelo\Habitacion.class
 com\mycompany\practicabasededatos\modelo\TipoReserva.class
+com\mycompany\practicabasededatos\ReservaController$1.class
 com\mycompany\practicabasededatos\HabitacionController.class
 com\mycompany\practicabasededatos\modelo\EstadoTarea.class
 com\mycompany\practicabasededatos\BienvenidaController.class

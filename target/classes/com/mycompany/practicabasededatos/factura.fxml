@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane 
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.mycompany.practicabasededatos.FacturaController">
+    <children>
+        <!-- Detalles de la Reserva -->
+        <Label text="Número de Reserva:" layoutX="20.0" layoutY="20.0" />
+        <Label fx:id="lblNumeroReserva" layoutX="150.0" layoutY="20.0" />
+
+        <Label text="Cliente:" layoutX="20.0" layoutY="50.0" />
+        <Label fx:id="lblCliente" layoutX="150.0" layoutY="50.0" />
+
+        <Label text="Fecha Inicio:" layoutX="20.0" layoutY="80.0" />
+        <Label fx:id="lblFechaInicio" layoutX="150.0" layoutY="80.0" />
+
+        <Label text="Fecha Fin:" layoutX="20.0" layoutY="110.0" />
+        <Label fx:id="lblFechaFin" layoutX="150.0" layoutY="110.0" />
+
+        <Label text="Total Días:" layoutX="20.0" layoutY="140.0" />
+        <Label fx:id="lblTotalDias" layoutX="150.0" layoutY="140.0" />
+
+        <!-- Cálculo de Precios -->
+        <Label text="Precio Base:" layoutX="20.0" layoutY="170.0" />
+        <Label fx:id="lblPrecioBase" layoutX="150.0" layoutY="170.0" />
+
+        <Label text="IVA:" layoutX="20.0" layoutY="200.0" />
+        <Label fx:id="lblIva" layoutX="150.0" layoutY="200.0" />
+
+        <Label text="Precio Total:" layoutX="20.0" layoutY="230.0" />
+        <Label fx:id="lblPrecioTotal" layoutX="150.0" layoutY="230.0" />
+
+        <!-- Método de Pago -->
+        <Label text="Método de Pago:" layoutX="20.0" layoutY="270.0" />
+        <ComboBox fx:id="cmbMetodoPago" layoutX="150.0" layoutY="270.0" prefWidth="200.0" />
+
+        <!-- Botones -->
+        <Button text="Crear Factura" layoutX="50.0" layoutY="310.0" onAction="#crearFactura" />
+        <Button text="Cerrar" layoutX="200.0" layoutY="310.0" onAction="#cerrarVentana" />
+    </children>
+</AnchorPane>
