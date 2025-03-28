@@ -3,6 +3,7 @@ com\mycompany\practicabasededatos\modelo\Factura.class
 com\mycompany\practicabasededatos\database\ClienteDAO.class
 com\mycompany\practicabasededatos\database\PersonaDAO.class
 com\mycompany\practicabasededatos\modelo\Empleado.class
+com\mycompany\practicabasededatos\ModificarUsuarioController.class
 com\mycompany\practicabasededatos\modelo\TipoHabitacion.class
 com\mycompany\practicabasededatos\ReservaController.class
 com\mycompany\practicabasededatos\database\DatabaseConnection.class

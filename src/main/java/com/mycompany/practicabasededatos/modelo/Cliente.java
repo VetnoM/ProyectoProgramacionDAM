@@ -17,6 +17,11 @@ public class Cliente extends Persona {
         this.tipoCliente = tipoCliente;
     }
 
+    public Cliente(int id_persona, String documento, String direccion, String email, TipoCliente tipoCliente) {
+        super(id_persona, documento, direccion, email);  // Llamar al constructor de la clase base (Persona)
+        this.tipoCliente = tipoCliente;
+    }
+
     // Constructor vacío
     public Cliente() {
     }

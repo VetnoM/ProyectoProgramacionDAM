@@ -27,6 +27,12 @@ public class BienvenidaController  {
     private void cambiarAltaPersonas() throws IOException {
         switchFxml("primary.fxml");
     }
+
+    //cambiar a modificar datos de personas
+    @FXML
+    private void cambiarModificarPersonas() throws IOException {
+        switchFxml("modificarUsuario.fxml");
+    }
     
     
 // tareas

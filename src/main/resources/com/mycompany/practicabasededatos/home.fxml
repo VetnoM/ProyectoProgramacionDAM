@@ -17,6 +17,7 @@
                 <Menu mnemonicParsing="false" text="Usuario">
                   <items>
                     <MenuItem mnemonicParsing="false" onAction="#cambiarAltaPersonas" text="Alta de usuario" />
+                        <MenuItem mnemonicParsing="false" onAction="#cambiarModificarPersonas" text="Modificar usuarios" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Tarea">

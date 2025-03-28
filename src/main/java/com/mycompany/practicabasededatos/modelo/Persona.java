@@ -24,6 +24,13 @@ public class Persona {
         this.email = email;
         this.direccion = direccion;
     }
+// Constructor con solo id_persona y documento_identidad
+    public Persona(int id_persona, String documento_identidad, String direccion, String email) {
+        this.id_persona = id_persona;
+        this.documento_identidad = documento_identidad;
+        this.direccion = direccion;
+        this.email = email;
+    }
 
     // Constructor vacío
     public Persona() {

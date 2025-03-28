@@ -19,6 +19,14 @@ public class Empleado extends Persona {
         this.fecha_contratacion = fecha_contratacion;
     }
 
+    public Empleado(int id_persona, String documento, String direccion, String email, 
+    double salario_bruto, String lugarTrabajo, EstadoLaboral estadoLaboral) {
+super(id_persona, documento, direccion, email);  // Llamar al constructor de la clase base (Persona)
+this.salario_bruto = salario_bruto;
+this.lugar_trabajo = lugarTrabajo;
+this.estadolaboral = estadoLaboral;
+}
+
     // Constructor vacío
     public Empleado() {
     }

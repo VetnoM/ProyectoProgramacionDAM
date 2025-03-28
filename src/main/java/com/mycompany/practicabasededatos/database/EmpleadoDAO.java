@@ -2,6 +2,8 @@ package com.mycompany.practicabasededatos.database;
 
 import com.mycompany.practicabasededatos.modelo.Empleado;
 import com.mycompany.practicabasededatos.modelo.EstadoLaboral;
+import com.mycompany.practicabasededatos.modelo.Persona;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -117,4 +119,31 @@ public class EmpleadoDAO {
             stmt.executeUpdate();
         }
     }
+
+      // Método para obtener un empleado por ID de persona
+    public Empleado obtenerEmpleadoPorIdPersona(int idPersona) {
+    String sql = "SELECT * FROM empleado WHERE id_persona = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, idPersona);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            // Obtener datos de persona
+            PersonaDAO personaDAO = new PersonaDAO();
+            Persona persona = personaDAO.obtenerPersonaPorDocumento(rs.getString("documento"));
+
+            // Convertir Strings a Enums
+            EstadoLaboral estadoLaboral = EstadoLaboral.valueOf(rs.getString("estado_laboral").toUpperCase());
+
+            return new Empleado(persona.getId_persona(), persona.getDocumento_identidad(), persona.getDireccion(),
+                                persona.getEmail(), rs.getDouble("salario_bruto"), 
+                                rs.getString("lugar_trabajo"), estadoLaboral);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+
 }

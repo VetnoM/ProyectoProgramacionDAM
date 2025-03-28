@@ -1,6 +1,7 @@
 package com.mycompany.practicabasededatos.database;
 
 import com.mycompany.practicabasededatos.modelo.Cliente;
+import com.mycompany.practicabasededatos.modelo.Persona;
 import com.mycompany.practicabasededatos.modelo.TipoCliente;
 
 import java.sql.*;
@@ -115,4 +116,30 @@ public class ClienteDAO {
             stmt.executeUpdate();
         }
     }
+
+       // Método para obtener un cliente por ID de persona
+public Cliente obtenerClientePorIdPersona(int idPersona) {
+    String sql = "SELECT * FROM cliente WHERE id_persona = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+    PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, idPersona);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            // Obtener datos de persona
+            PersonaDAO personaDAO = new PersonaDAO();
+            Persona persona = personaDAO.obtenerPersonaPorDocumento(rs.getString("documento"));
+
+            // Convertir String a Enum
+            TipoCliente tipoCliente = TipoCliente.valueOf(rs.getString("tipo_cliente").toUpperCase());
+
+            return new Cliente(persona.getId_persona(), persona.getDocumento_identidad(), 
+                               persona.getDireccion(), persona.getEmail(), tipoCliente);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+
 }

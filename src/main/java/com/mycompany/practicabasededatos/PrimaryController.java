@@ -1,7 +1,6 @@
 package com.mycompany.practicabasededatos;
 
 import com.mycompany.practicabasededatos.database.DatabaseConnection;
-import com.mycompany.practicabasededatos.database.PersonaDAO;
 import com.mycompany.practicabasededatos.database.TareaDAO;
 import com.mycompany.practicabasededatos.modelo.Modelo;
 import com.mycompany.practicabasededatos.modelo.Persona;
