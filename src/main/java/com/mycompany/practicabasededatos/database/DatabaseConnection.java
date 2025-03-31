@@ -9,9 +9,9 @@ public class DatabaseConnection {
     // URL de la base de datos MySQL
     private static final String URL = "jdbc:mysql://localhost:3306/dam_bd";
     // Usuario de la base de datos MySQL
-    private static final String USER = "usuariodam";  // Cambia esto por tu usuario de MySQL
+    private static final String USER = "usuariodam";  
     // Contraseña de la base de datos MySQL
-    private static final String PASSWORD = "usuariodam";  // Cambia esto por tu contraseña
+    private static final String PASSWORD = "usuariodam";  
 
     // Método para obtener una conexión a la base de datos
     public static Connection getConnection() throws SQLException {
