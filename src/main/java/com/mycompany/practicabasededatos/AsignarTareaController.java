@@ -1,43 +1,81 @@
-
 package com.mycompany.practicabasededatos;
 
 import com.mycompany.practicabasededatos.modelo.Modelo;
 import com.mycompany.practicabasededatos.modelo.Empleado;
+import com.mycompany.practicabasededatos.modelo.EstadoTarea;
 import com.mycompany.practicabasededatos.modelo.Tarea;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-import javafx.fxml.Initializable;
+import java.util.List;
 
+public class AsignarTareaController {
 
-public class AsignarTareaController implements Initializable {
     @FXML
-    private ListView<Tarea> listTareas;
+    private ListView<Tarea> listTareasPendientes;
     @FXML
-    private ComboBox<Empleado> comboEmpleados;
+    private ListView<Empleado> listEmpleados;
+    @FXML
+private ListView<Empleado> listEmpleadosConTareas;
 
-    // Llamado al modelo
-    Modelo modelo = new Modelo();
+    @FXML
+    private ListView<Tarea> listTareasAsignadas;
+    @FXML
+    private Button btnMarcarCompletada;
+    @FXML
+    private TextField tfBuscarDocumento;
 
+    @FXML
+    private ComboBox<Tarea> comboFiltrarTareas;
+    @FXML
+    private ListView<Tarea> listTareasTodas;
+    @FXML
+    private Button btnAsignar;
+
+    private Modelo modelo = new Modelo();
+
+    private ObservableList<Empleado> empleadosfiltrado;
+    private ObservableList<Tarea> tareasPendientesOriginal;
+
+    public void initialize() {
+        cargarTareasPendientes();
+        cargarEmpleados();
+        configurarFiltroEmpleados();
+        configurarFiltroTareas();
+        btnAsignar.setOnAction(e -> asignarTarea());
+        listEmpleados.setItems(FXCollections.observableArrayList(modelo.obtenerEmpleados()));
+
+
+        // area empleados
+        listEmpleadosConTareas.setItems(modelo.obtenerEmpleadosConTareas());
+        listEmpleadosConTareas.setCellFactory(lv -> new ListCell<>() {
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        // Cargar lista de tareas
-        cargarTareasEnLista();
+    protected void updateItem(Empleado empleado, boolean empty) {
+        super.updateItem(empleado, empty);
+        if (empty || empleado == null) {
+            setText(null);
+        } else {
+            setText(empleado.getNombre() + " " + empleado.getApellido());
+        }
+    }
+});
 
-        // Cargar empleados en el ComboBox
-        cargarEmpleadosEnCombo();
+        // Cuando seleccionas un empleado, carga sus tareas
+ listEmpleadosConTareas.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+    if (newVal != null) {
+        cargarTareasAsignadas(newVal);
+    }
+});
     }
 
-    // Método para cargar las tareas en la lista
-    private void cargarTareasEnLista() {
-        ObservableList<Tarea> tareas = FXCollections.observableArrayList(modelo.obtenerTareas());
-        listTareas.setItems(tareas);
+    private void cargarTareasPendientes() {
+        List<Tarea> pendientes = modelo.obtenerTareasPendientes();
+        tareasPendientesOriginal = FXCollections.observableArrayList(pendientes);
+        listTareasPendientes.setItems(tareasPendientesOriginal);
 
-        listTareas.setCellFactory(param -> new ListCell<Tarea>() {
+        listTareasPendientes.setCellFactory(lv -> new ListCell<Tarea>() {
             @Override
             protected void updateItem(Tarea tarea, boolean empty) {
                 super.updateItem(tarea, empty);
@@ -50,32 +88,177 @@ public class AsignarTareaController implements Initializable {
         });
     }
 
-    // Método para cargar los empleados en el ComboBox
-    private void cargarEmpleadosEnCombo() {
-        ObservableList<Empleado> empleados = FXCollections.observableArrayList(modelo.obtenerEmpleados());
-        comboEmpleados.setItems(empleados);
+    public void cargarEmpleados() {
+        try {
+            List<Empleado> empleados = modelo.obtenerEmpleados();
+            if (empleados == null) {
+                empleados = List.of(); // nunca null
+            }
+
+            empleadosfiltrado = FXCollections.observableArrayList(empleados);
+            listEmpleados.setItems(empleadosfiltrado);
+            listEmpleadosConTareas.setItems(FXCollections.observableArrayList(modelo.obtenerEmpleadosConTareas()));
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            empleadosfiltrado = FXCollections.observableArrayList(); // defensivo
+            listEmpleados.setItems(empleadosfiltrado);
+        }
     }
 
-    // Método para asignar una tarea a un empleado
-    @FXML
-    private void asignarTarea() {
-        Tarea tareaSeleccionada = listTareas.getSelectionModel().getSelectedItem();
-        Empleado empleadoSeleccionado = comboEmpleados.getSelectionModel().getSelectedItem();
+    private void configurarFiltroEmpleados() {
+        tfBuscarDocumento.textProperty().addListener((obs, oldText, newText) -> {
+            if (empleadosfiltrado == null)
+                return;
 
-        if (tareaSeleccionada == null || empleadoSeleccionado == null) {
-            mostrarAlertaError("Error", "Por favor, selecciona una tarea y un empleado.");
+            if (newText == null || newText.isBlank()) {
+                // Mostrar todos los empleados si el campo está vacío
+                listEmpleados.setItems(empleadosfiltrado);
+            } else {
+                String filtro = newText.toLowerCase();
+
+                ObservableList<Empleado> filtrados = empleadosfiltrado
+                        .filtered(emp -> (emp.getDocumento_identidad() != null
+                                && emp.getDocumento_identidad().toLowerCase().contains(filtro)) ||
+                                (emp.getNombre() != null && emp.getNombre().toLowerCase().contains(filtro)) ||
+                                (emp.getApellido() != null && emp.getApellido().toLowerCase().contains(filtro)));
+
+                listEmpleados.setItems(filtrados);
+            }
+        });
+    }
+
+    private void configurarFiltroTareas() {
+        comboFiltrarTareas.valueProperty().addListener((obs, oldTarea, nuevaTarea) -> {
+            if (nuevaTarea == null) {
+                listTareasPendientes.setItems(tareasPendientesOriginal);
+            } else {
+                ObservableList<Tarea> filtradas = tareasPendientesOriginal
+                        .filtered(t -> t.getId_tarea() == nuevaTarea.getId_tarea());
+                listTareasPendientes.setItems(filtradas);
+            }
+        });
+
+        // Llenar el comboBox con tareas pendientes
+        comboFiltrarTareas.setItems(FXCollections.observableArrayList(tareasPendientesOriginal));
+        comboFiltrarTareas.getItems().add(0, null);
+        comboFiltrarTareas.setPromptText("Filtrar tareas");
+
+        comboFiltrarTareas.setCellFactory(cb -> new ListCell<Tarea>() {
+            @Override
+            protected void updateItem(Tarea tarea, boolean empty) {
+                super.updateItem(tarea, empty);
+                if (empty || tarea == null) {
+                    setText("Todas las tareas");
+                } else {
+                    setText(tarea.getDescripcion());
+                }
+            }
+        });
+
+        comboFiltrarTareas.setButtonCell(new ListCell<Tarea>() {
+            @Override
+            protected void updateItem(Tarea tarea, boolean empty) {
+                super.updateItem(tarea, empty);
+                if (empty || tarea == null) {
+                    setText("Todas las tareas");
+                } else {
+                    setText(tarea.getDescripcion());
+                }
+            }
+        });
+    }
+
+    private void asignarTarea() {
+        Tarea tareaSeleccionada = listTareasPendientes.getSelectionModel().getSelectedItem();
+        Empleado empleadoSeleccionado = listEmpleados.getSelectionModel().getSelectedItem();
+
+        if (tareaSeleccionada == null) {
+            mostrarAlertaError("Error", "Por favor, selecciona una tarea pendiente.");
+            return;
+        }
+        if (empleadoSeleccionado == null) {
+            mostrarAlertaError("Error", "Por favor, selecciona un empleado.");
             return;
         }
 
-        boolean asignada = modelo.asignarTareaAEmpleado(tareaSeleccionada, empleadoSeleccionado);
-        if (asignada) {
-            mostrarAlertaInformacion("Éxito", "Tarea asignada correctamente.");
-        } else {
-            mostrarAlertaError("Error", "No se pudo asignar la tarea.");
-        }
+        
+
+        
+
+        boolean exito = modelo.asignarTareaAEmpleado(tareaSeleccionada, empleadoSeleccionado);
+
+    if (exito) {
+    mostrarAlertaInformacion("Éxito", "Tarea asignada correctamente.");
+    cargarTareasPendientes();
+    cargarTareasAsignadas(empleadoSeleccionado); 
+} else {
+    mostrarAlertaError("Error", "No se pudo asignar la tarea. Es posible que ya esté asignada a este empleado.");
+}
     }
 
-    // Método para mostrar alerta de información
+    // area empelado
+
+ private void cargarTareasAsignadas(Empleado empleado) {
+    try {
+        List<Tarea> tareas = modelo.obtenerTareasAsignadasAEmpleado(empleado.getId_empleado());
+        listTareasAsignadas.setItems(FXCollections.observableArrayList(tareas));
+        listTareasAsignadas.setCellFactory(lv -> new ListCell<Tarea>() {
+    @Override
+    protected void updateItem(Tarea tarea, boolean empty) {
+        super.updateItem(tarea, empty);
+        if (empty || tarea == null) {
+            setText(null);
+        } else {
+            setText( tarea.getDescripcion() + " | Estado: " + tarea.getEstadoTarea());
+        }
+    }
+});
+
+    } catch (Exception e) {
+        mostrarAlertaError("Error", "No se pudieron cargar las tareas.");
+        e.printStackTrace();
+    }
+}
+
+
+@FXML
+private void marcarTareaComoCompletada() {
+    Empleado empleado = listEmpleadosConTareas.getSelectionModel().getSelectedItem();
+    Tarea tarea = listTareasAsignadas.getSelectionModel().getSelectedItem();
+
+    if (empleado == null || tarea == null) {
+        mostrarAlertaError("Error", "Selecciona un empleado y una tarea.");
+        return;
+    }
+
+    try {
+        // Marca la tarea como completada para el empleado
+        boolean completadaGlobal = modelo.marcarTareaEmpleadoComoCompletada(empleado.getId_empleado(), tarea.getId_tarea());
+
+        // Mostrar mensaje
+        if (completadaGlobal) {
+            mostrarAlertaInformacion("Éxito", "Tarea marcada como completada.");
+        } else {
+            mostrarAlertaInformacion("Éxito", "Has marcado tu parte como completada.");
+        }
+
+        // Refrescar listas
+        cargarTareasAsignadas(empleado);    // Lista del empleado
+        cargarTareasPendientes();           // Refresca las tareas pendientes
+        comboFiltrarTareas.setItems(FXCollections.observableArrayList(tareasPendientesOriginal)); // Actualiza opciones del ComboBox
+
+    } catch (Exception e) {
+        mostrarAlertaError("Error", "No se pudo actualizar la tarea.");
+        e.printStackTrace();
+    }
+}
+
+
+    
+
+    // Métodos para mostrar alertas
     public static void mostrarAlertaInformacion(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle(titulo);
@@ -84,7 +267,6 @@ public class AsignarTareaController implements Initializable {
         alerta.showAndWait();
     }
 
-    // Método para mostrar alerta de error
     public static void mostrarAlertaError(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.ERROR);
         alerta.setTitle(titulo);

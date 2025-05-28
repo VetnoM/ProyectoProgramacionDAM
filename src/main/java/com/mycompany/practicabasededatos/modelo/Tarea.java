@@ -18,6 +18,11 @@ public class Tarea {
         this.fecha_ejecucion = fecha_ejecucion;
     }
 
+    public Tarea() {
+    }
+
+    
+
     // Getters y Setters
     public int getId_tarea() {
         return id_tarea;
@@ -57,5 +62,10 @@ public class Tarea {
 
     public void setFecha_ejecucion(Date fecha_ejecucion) {
         this.fecha_ejecucion = fecha_ejecucion;
+    }
+
+    @Override
+    public String toString() {
+        return descripcion + " | Estado: " + estadoTarea;
     }
 }

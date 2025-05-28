@@ -23,8 +23,7 @@
                 <Menu mnemonicParsing="false" text="Tarea">
                   <items>
                     <MenuItem mnemonicParsing="false" onAction="#cambiarCrearTarea" text="Crear Tarea" />
-                        <MenuItem mnemonicParsing="false" text="Ver Tareas" />
-                        <MenuItem mnemonicParsing="false" text="Asignar Tareas" />
+                        <MenuItem mnemonicParsing="false" onAction="#cambiarAsignarTarea" text="Asignar Tareas" />
                   </items>
                 </Menu>
                   <Menu mnemonicParsing="false" text="Habitacion">
@@ -35,6 +34,7 @@
                   <Menu mnemonicParsing="false" text="Reserva">
                     <items>
                       <MenuItem mnemonicParsing="false" onAction="#cambiarReservas" text="Vista de reservas" />
+                        <MenuItem mnemonicParsing="false" onAction="#cambiarServicios" text="Servicios" />
                     </items>
                   </Menu>
               </menus>

@@ -7,6 +7,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ReservaDAO {
@@ -42,32 +46,57 @@ public class ReservaDAO {
         }
         return reservas;
     }
-    // metodo para obtener personas sin reserva
-    public ObservableList<String> obtenerPersonasSinReserva() {
-        ObservableList<String> personas = FXCollections.observableArrayList();
-        String sql = "SELECT DISTINCT p.documento, p.nombre, p.apellido, " +
-                     "CASE WHEN c.id_cliente IS NOT NULL THEN 'Cliente' ELSE 'Empleado' END AS tipo " +
-                     "FROM persona p " +
-                     "LEFT JOIN cliente c ON p.id_persona = c.id_persona " +
-                     "LEFT JOIN empleado e ON p.id_persona = e.id_persona " +
-                     "WHERE p.id_persona NOT IN (SELECT r.id_cliente FROM reserva r)";
+//    // metodo para obtener personas sin reserva
+//    public ObservableList<String> obtenerPersonasSinReserva() {
+//        ObservableList<String> personas = FXCollections.observableArrayList();
+//        String sql = "SELECT DISTINCT p.documento, p.nombre, p.apellido, " +
+//                     "CASE WHEN c.id_cliente IS NOT NULL THEN 'Cliente' ELSE 'Empleado' END AS tipo " +
+//                     "FROM persona p " +
+//                     "LEFT JOIN cliente c ON p.id_persona = c.id_persona " +
+//                     "LEFT JOIN empleado e ON p.id_persona = e.id_persona " +
+//                     "WHERE p.id_persona NOT IN (SELECT r.id_cliente FROM reserva r)";
+//    
+//        try (Connection conn = DatabaseConnection.getConnection();
+//             PreparedStatement stmt = conn.prepareStatement(sql);
+//             ResultSet rs = stmt.executeQuery()) {
+//    
+//            while (rs.next()) {
+//                String tipo = rs.getString("tipo");
+//                String persona = rs.getString("documento") + " - " +
+//                                 rs.getString("nombre") + " " +
+//                                 rs.getString("apellido") + " (" + tipo + ")";
+//                personas.add(persona);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return personas;
+//    }
     
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-    
-            while (rs.next()) {
-                String tipo = rs.getString("tipo");
-                String persona = rs.getString("documento") + " - " +
-                                 rs.getString("nombre") + " " +
-                                 rs.getString("apellido") + " (" + tipo + ")";
-                personas.add(persona);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+public List<String> obtenerClientesConNombre() {
+    List<String> personas = new ArrayList<>();
+    String sql = "SELECT p.documento, p.nombre, p.apellido " +
+                 "FROM persona p " +
+                 "JOIN cliente c ON p.id_persona = c.id_persona";
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            String documento = rs.getString("documento");
+            String nombre = rs.getString("nombre") + " " + rs.getString("apellido");
+            personas.add(documento + " - " + nombre);
         }
-        return personas;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+
+    return personas;
+}
+
+
 
     public int crearReserva(Reserva reserva) throws SQLException {
         int nuevoId = obtenerProximoIdReserva(); // Obtener el nuevo ID manualmente
@@ -161,7 +190,42 @@ public class ReservaDAO {
         return idCliente;
     }
 
- 
+     // Devuelve el tipo de cliente según id_cliente ("Cliente", "Empleado", "Ambos")
+    public String obtenerTipoClientePorId(int idCliente) {
+        String tipo = "Otros";
+        String sqlCliente = "SELECT 1 FROM cliente WHERE id_cliente = ?";
+        String sqlEmpleado = "SELECT 1 FROM empleado WHERE id_persona = (SELECT id_persona FROM cliente WHERE id_cliente = ?)";
+
+        try {
+            // Verificamos si es cliente
+            try (PreparedStatement psCliente = DatabaseConnection.getConnection().prepareStatement(sqlCliente)) {
+                psCliente.setInt(1, idCliente);
+                ResultSet rsCliente = psCliente.executeQuery();
+                boolean esCliente = rsCliente.next();
+                rsCliente.close();
+
+                // Verificamos si es empleado también
+                try (PreparedStatement psEmpleado = DatabaseConnection.getConnection().prepareStatement(sqlEmpleado)) {
+                    psEmpleado.setInt(1, idCliente);
+                    ResultSet rsEmpleado = psEmpleado.executeQuery();
+                    boolean esEmpleado = rsEmpleado.next();
+                    rsEmpleado.close();
+
+                    if (esCliente && esEmpleado) {
+                        tipo = "Ambos";
+                    } else if (esCliente) {
+                        tipo = "Cliente";
+                    } else if (esEmpleado) {
+                        tipo = "Empleado";
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tipo;
+    }
+
     
 
     public int obtenerIdHabitacionPorNumero(String numeroHabitacion) {
@@ -185,6 +249,33 @@ public class ReservaDAO {
     
         return idHabitacion;
     }
+// metodo para verificar que no hay solapamiento de fechas
+    public boolean existeSolapamientoReserva(int idHabitacion, LocalDate fechaInicio, LocalDate fechaFin) {
+    String sql = "SELECT COUNT(*) FROM reserva WHERE id_habitacion = ? AND " +
+                 "((? BETWEEN fecha_inicio AND fecha_fin) OR " +
+                 "(? BETWEEN fecha_inicio AND fecha_fin) OR " +
+                 "(fecha_inicio BETWEEN ? AND ?) OR " +
+                 "(fecha_fin BETWEEN ? AND ?))";
+
+    try (Connection conn = DatabaseConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, idHabitacion);
+        stmt.setDate(2, java.sql.Date.valueOf(fechaInicio));
+        stmt.setDate(3, java.sql.Date.valueOf(fechaFin));
+        stmt.setDate(4, java.sql.Date.valueOf(fechaInicio));
+        stmt.setDate(5, java.sql.Date.valueOf(fechaFin));
+        stmt.setDate(6, java.sql.Date.valueOf(fechaInicio));
+        stmt.setDate(7, java.sql.Date.valueOf(fechaFin));
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return false;
+}
+
     
     
 
@@ -200,4 +291,87 @@ public class ReservaDAO {
             }
         }
     }
+
+// Método para obtener última fecha fin reserva de una habitación
+public LocalDate obtenerUltimaFechaFinReserva(int idHabitacion) throws SQLException {
+    String sql = "SELECT MAX(fecha_fin) AS ultima_fecha_fin FROM reserva WHERE id_habitacion = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setInt(1, idHabitacion);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next() && rs.getDate("ultima_fecha_fin") != null) {
+            return rs.getDate("ultima_fecha_fin").toLocalDate();
+        }
+    }
+    return null;
+}
+// Método para obtener todos los días ocupados de una habitación
+public List<LocalDate> obtenerDiasOcupados(int idHabitacion) throws SQLException {
+    List<LocalDate> diasOcupados = new ArrayList<>();
+    List<LocalDate[]> rangos = obtenerRangosFechasReservadas(idHabitacion);
+    for (LocalDate[] rango : rangos) {
+        LocalDate inicio = rango[0];
+        LocalDate fin = rango[1];
+        long dias = ChronoUnit.DAYS.between(inicio, fin);
+        for (int i = 0; i <= dias; i++) {
+            diasOcupados.add(inicio.plusDays(i));
+        }
+    }
+    return diasOcupados;
+}
+
+public List<LocalDate[]> obtenerRangosFechasReservadas(int idHabitacion) throws SQLException {
+    List<LocalDate[]> fechasOcupadas = new ArrayList<>();
+
+    String query = "SELECT fecha_inicio, fecha_fin FROM reserva WHERE id_habitacion = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(query)) {
+
+        stmt.setInt(1, idHabitacion);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            LocalDate inicio = rs.getDate("fecha_inicio").toLocalDate();
+            LocalDate fin = rs.getDate("fecha_fin").toLocalDate();
+            fechasOcupadas.add(new LocalDate[] { inicio, fin });
+        }
+    }
+
+    return fechasOcupadas;
+}
+
+public ObservableList<String> obtenerHabitacionesConEstado() throws SQLException {
+    ObservableList<String> resultado = FXCollections.observableArrayList();
+
+    String sql = "SELECT numero_habitacion FROM habitacion"; // sin WHERE activa = 1 si no existe
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            String numero = rs.getString("numero_habitacion");
+            resultado.add(numero + " - Habitación");
+        }
+    }
+
+    return resultado;
+}
+
+public boolean actualizarEstadoReserva(int idReserva, String nuevoEstado) {
+    String sql = "UPDATE reserva SET estado = ? WHERE id_reserva = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, nuevoEstado);
+        stmt.setInt(2, idReserva);
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+
+
+
 }

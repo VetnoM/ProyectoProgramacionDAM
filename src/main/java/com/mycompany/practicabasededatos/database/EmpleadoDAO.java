@@ -31,35 +31,44 @@ public class EmpleadoDAO {
         }
     }
 
-    // Método para obtener todos los empleados
-    public List<Empleado> obtenerEmpleados() throws SQLException {
-        // Crea una lista para almacenar los empleados
-        List<Empleado> empleados = new ArrayList<>();
-        // Consulta SQL para obtener todos los registros de la tabla 'empleado'
-        String sql = "SELECT * FROM empleado";
+public List<Empleado> obtenerEmpleados() throws SQLException {
+    List<Empleado> empleados = new ArrayList<>();
 
-        // Establece una conexión con la base de datos y ejecuta la consulta SQL
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+    String sql = 
+       " SELECT e.id_empleado, e.lugar_trabajo, e.salario, e.estado_laboral, e.fecha_contratacion, "+
+              " p.id_persona, p.documento, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.direccion "+
+        "FROM empleado e "+
+        "JOIN persona p ON e.id_persona = p.id_persona"
+    ;
 
-            // Itera sobre los resultados de la consulta
-            while (rs.next()) {
-                // Crea un nuevo objeto Empleado y asigna los valores de la base de datos
-                Empleado empleado = new Empleado();
-                empleado.setId_empleado(rs.getInt("id_empleado"));
-                empleado.setId_persona(rs.getInt("id_persona"));
-                empleado.setLugar_trabajo(rs.getString("lugar_trabajo"));
-                empleado.setSalario_bruto(rs.getDouble("salario"));
-                empleado.setEstadolaboral(EstadoLaboral.valueOf(rs.getString("estado_laboral")));
-                empleado.setFecha_contratacion(rs.getDate("fecha_contratacion"));
-                // Añade el empleado a la lista
-                empleados.add(empleado);
-            }
+    try (Connection con = DatabaseConnection.getConnection();
+         PreparedStatement stmt = con.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            Empleado e = new Empleado();
+            e.setId_empleado(rs.getInt("id_empleado"));
+            e.setLugar_trabajo(rs.getString("lugar_trabajo"));
+            e.setSalario_bruto(rs.getDouble("salario"));
+            e.setEstadolaboral(EstadoLaboral.valueOf(rs.getString("estado_laboral")));
+            e.setFecha_contratacion(rs.getDate("fecha_contratacion"));
+
+            // Datos de la persona heredados
+            e.setId_persona(rs.getInt("id_persona"));
+            e.setDocumento_identidad(rs.getString("documento"));
+            e.setNombre(rs.getString("nombre"));
+            e.setApellido(rs.getString("apellido"));
+            e.setFecha_nacimiento(rs.getDate("fecha_nacimiento"));
+            e.setTelefono(rs.getString("telefono"));
+            e.setEmail(rs.getString("email"));
+            e.setDireccion(rs.getString("direccion"));
+
+            empleados.add(e);
         }
-        // Devuelve la lista de empleados
-        return empleados;
     }
+
+    return empleados;
+}
 
     // Método para obtener el ID de un empleado por su documento
     public int obtenerIdEmpleadoPorDocumento(Connection conn, String documento) throws SQLException {

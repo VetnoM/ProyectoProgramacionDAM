@@ -72,4 +72,13 @@ this.estadolaboral = estadoLaboral;
     public void setFecha_contratacion(Date fecha_contratacion) {
         this.fecha_contratacion = fecha_contratacion;
     }
+
+@Override
+public String toString() {
+    return (getDocumento_identidad() != null ? getDocumento_identidad() : "Sin Documento") + " - " +
+           (getApellido() != null ? getApellido() : "Apellido Desconocido") + ", " +
+           (getNombre() != null ? getNombre() : "Nombre Desconocido");
+}
+
+
 }

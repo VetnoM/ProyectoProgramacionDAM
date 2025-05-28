@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
- */
 package com.mycompany.practicabasededatos;
 
 import com.mycompany.practicabasededatos.modelo.Modelo;
@@ -16,72 +12,90 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 
 public class CrearTareaController {
+
     @FXML
     private TextField txtDescripcionTarea;
+
     @FXML
     private DatePicker dpFechaCreacionTarea;
-    @FXML
-    private ListView<String> listDescripcion;
-    @FXML
-    private ListView<String> listEstado;
-    @FXML
-    private ListView<String> listFechaCreacion;
 
-    // Llamado al modelo
+    @FXML
+    private DatePicker dpFechaEjecucionTarea;
+
+    @FXML
+    private TableView<Tarea> tableTareas;
+
+    @FXML
+    private TableColumn<Tarea, String> colDescripcion;
+
+    @FXML
+    private TableColumn<Tarea, String> colEstado;
+
+    @FXML
+    private TableColumn<Tarea, String> colFechaCreacion;
+
     Modelo modelo = new Modelo();
 
     @FXML
     public void initialize() {
-        // Cargar lista de tareas
-        cargarTareasEnLista();
+        // Configurar las columnas del TableView
+        colDescripcion.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
+                cellData.getValue().getDescripcion()));
+
+        colEstado.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
+                cellData.getValue().getEstadoTarea().toString()));
+
+        colFechaCreacion.setCellValueFactory(cellData -> {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            String fechaStr = cellData.getValue().getFecha_creacion() != null
+                    ? formatter.format(cellData.getValue().getFecha_creacion())
+                    : "";
+            return new javafx.beans.property.SimpleStringProperty(fechaStr);
+        });
+
+        cargarTareasEnTabla();
     }
 
-    // Método para cargar las tareas en las listas
-    private void cargarTareasEnLista() {
-        ObservableList<Tarea> tareas = FXCollections.observableArrayList(modelo.obtenerTareas());
-        
-        ObservableList<String> descripciones = FXCollections.observableArrayList();
-        ObservableList<String> estados = FXCollections.observableArrayList();
-        ObservableList<String> fechasCreacion = FXCollections.observableArrayList();
-
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-
-        for (Tarea tarea : tareas) {
-            descripciones.add(tarea.getDescripcion());
-            estados.add(tarea.getEstadoTarea().toString());
-            fechasCreacion.add(formatter.format(tarea.getFecha_creacion()));
+    private void cargarTareasEnTabla() {
+        try {
+            ObservableList<Tarea> tareas = FXCollections.observableArrayList(modelo.obtenerTareas());
+            tableTareas.setItems(tareas);
+        } catch (Exception e) {
+            mostrarAlertaError("Error", "No se pudieron cargar las tareas.");
+            e.printStackTrace();
         }
-
-        listDescripcion.setItems(descripciones);
-        listEstado.setItems(estados);
-        listFechaCreacion.setItems(fechasCreacion);
     }
 
-    // Método para crear una tarea
     @FXML
     private void crearTarea() {
         String descripcion = txtDescripcionTarea.getText();
         Date fechaCreacion = (dpFechaCreacionTarea.getValue() != null)
                 ? Date.valueOf(dpFechaCreacionTarea.getValue())
                 : Date.valueOf(LocalDate.now());
+                Date fechaEjecucion = (dpFechaEjecucionTarea.getValue() != null)
+        ? Date.valueOf(dpFechaEjecucionTarea.getValue())
+        : null;
+
 
         if (descripcion.isEmpty()) {
             mostrarAlertaError("Error", "Por favor, completa la descripción de la tarea.");
             return;
         }
 
-        // Crear la tarea y obtener su ID
-        int idTarea = modelo.crearTarea(descripcion, fechaCreacion);
-
-        if (idTarea > 0) {
-            mostrarAlertaInformacion("Éxito", "Tarea creada correctamente.");
-            cargarTareasEnLista(); // Actualizar la lista de tareas
-        } else {
-            mostrarAlertaError("Error", "No se pudo crear la tarea.");
+        try {
+int idTarea = modelo.crearTarea(descripcion, fechaCreacion, fechaEjecucion);
+            if (idTarea > 0) {
+                mostrarAlertaInformacion("Éxito", "Tarea creada correctamente.");
+                cargarTareasEnTabla();
+            } else {
+                mostrarAlertaError("Error", "No se pudo crear la tarea.");
+            }
+        } catch (Exception e) {
+            mostrarAlertaError("Error", "Error al crear la tarea: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    // Método para mostrar alerta de información
     public static void mostrarAlertaInformacion(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle(titulo);
@@ -90,7 +104,6 @@ public class CrearTareaController {
         alerta.showAndWait();
     }
 
-    // Método para mostrar alerta de error
     public static void mostrarAlertaError(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.ERROR);
         alerta.setTitle(titulo);

@@ -3,16 +3,14 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane id="AnchorPane" prefHeight="544.0" prefWidth="846.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.practicabasededatos.CrearTareaController">
+<AnchorPane id="AnchorPane" prefHeight="660.0" prefWidth="967.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.practicabasededatos.CrearTareaController">
    <children>
       <SplitPane dividerPositions="0.6457564575645757" layoutX="577.0" layoutY="166.0" orientation="VERTICAL" prefHeight="544.0" prefWidth="846.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
@@ -25,56 +23,22 @@
                      </font>
                   </Label>
                   <Label layoutX="153.0" layoutY="112.0" text="Descripcion: " />
-                  <Label layoutX="147.0" layoutY="211.0" text="Fecha Creacion" />
-                  <DatePicker fx:id="dpFechaCreacionTarea" layoutX="271.0" layoutY="207.0" />
+                  <Label layoutX="225.0" layoutY="190.0" text="Fecha Creacion" />
+                  <DatePicker fx:id="dpFechaCreacionTarea" layoutX="225.0" layoutY="207.0" />
                   <Button layoutX="411.0" layoutY="298.0" mnemonicParsing="false" onAction="#crearTarea" text="Crear" />
+                  <DatePicker fx:id="dpFechaEjecucionTarea" layoutX="474.0" layoutY="207.0" />
+                  <Label layoutX="474.0" layoutY="190.0" text="Fecha Ejecucion" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="169.0" prefWidth="844.0">
                <children>
-                  <GridPane alignment="CENTER" layoutX="93.0" layoutY="40.0" prefHeight="189.0" prefWidth="844.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                    <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints maxHeight="89.0" minHeight="10.0" prefHeight="32.0" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="157.0" minHeight="10.0" prefHeight="157.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                     <children>
-                        <ListView fx:id="listDescripcion" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1" />
-                        <ListView fx:id="listEstado" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <ListView fx:id="listFechaCreacion" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <AnchorPane prefHeight="200.0" prefWidth="200.0">
-                           <children>
-                              <Label layoutX="90.0" layoutY="11.0" text="Descipcion">
-                                 <font>
-                                    <Font name="Trebuchet MS Italic" size="20.0" />
-                                 </font>
-                              </Label>
-                           </children>
-                        </AnchorPane>
-                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
-                           <children>
-                              <Label layoutX="93.0" layoutY="6.0" text="Estado">
-                                 <font>
-                                    <Font name="Trebuchet MS Italic" size="20.0" />
-                                 </font>
-                              </Label>
-                           </children>
-                        </AnchorPane>
-                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2">
-                           <children>
-                              <Label layoutX="72.0" layoutY="4.0" text="Fecha Creacion">
-                                 <font>
-                                    <Font name="Trebuchet MS Italic" size="20.0" />
-                                 </font>
-                              </Label>
-                           </children>
-                        </AnchorPane>
-                     </children>
-                  </GridPane>
+                  <TableView fx:id="tableTareas" layoutX="14.0" layoutY="-25.0" prefHeight="189.0" prefWidth="844.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <columns>
+                      <TableColumn fx:id="colDescripcion" prefWidth="293.0" text="Descipcion" />
+                      <TableColumn fx:id="colEstado" minWidth="0.0" prefWidth="290.0" text="Estado" />
+                        <TableColumn fx:id="colFechaCreacion" minWidth="0.0" prefWidth="260.0" text="Fecha Creacion" />
+                    </columns>
+                  </TableView>
                </children>
             </AnchorPane>
         </items>

@@ -176,75 +176,140 @@ public class PrimaryController {
     // Método para cargar la lista de personas desde la base de datos
 
 
-    @FXML
-    private void agregarUsuario() {
-        // Obtener datos del formulario
-        String documento = txtDocumento.getText();
-        String nombre = txtNombre.getText();
-        String apellido = txtApellido.getText();
-        String telefono = txtTelefono.getText();
-        String email = txtEmail.getText();
-        String direccion = txtDireccion.getText();
-        Date fechaNacimiento = Date.valueOf(dpFechaNacimiento.getValue());
+ @FXML
+private void agregarUsuario() {
+    limpiarErrores(); // ← Limpia errores visuales anteriores
 
-        String tipoSeleccionado = cmbTipoPersona.getValue();
+    String documento = txtDocumento.getText();
+    String nombre = txtNombre.getText();
+    String apellido = txtApellido.getText();
+    String telefono = txtTelefono.getText();
+    String email = txtEmail.getText();
+    String direccion = txtDireccion.getText();
+    String tipoSeleccionado = cmbTipoPersona.getValue();
 
-        if (documento.isEmpty() || nombre.isEmpty() || apellido.isEmpty() || telefono.isEmpty() || email.isEmpty()
-                || direccion.isEmpty() || fechaNacimiento == null || tipoSeleccionado == null) {
-            mostrarAlertaError("Error", "Por favor, completa todos los campos.");
+    // Validación inicial
+    if (documento.isEmpty() || nombre.isEmpty() || apellido.isEmpty() ||
+        telefono.isEmpty() || email.isEmpty() || direccion.isEmpty() || tipoSeleccionado == null) {
+        mostrarAlertaError("Error", "Por favor, completa todos los campos obligatorios.");
+        return;
+    }
+
+    // Validación de campos de texto
+    if (!nombre.matches("[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+")) {
+        mostrarAlertaError("Error", "El nombre no debe contener números ni caracteres especiales.");
+        return;
+    }
+
+    if (!apellido.matches("[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+")) {
+        mostrarAlertaError("Error", "El apellido no debe contener números ni caracteres especiales.");
+        return;
+    }
+
+    if (!email.matches("^[\\w-.]+@[\\w-]+\\.[a-zA-Z]{2,}$")) {
+        mostrarAlertaError("Error", "Por favor, ingresa un correo electrónico válido.");
+        return;
+    }
+
+    // Validación de fecha de nacimiento
+    if (dpFechaNacimiento.getValue() == null) {
+        mostrarAlertaError("Error", "Por favor, selecciona la fecha de nacimiento.");
+        return;
+    }
+
+    java.time.LocalDate hoy = java.time.LocalDate.now();
+
+    if (dpFechaNacimiento.getValue().isAfter(hoy)) {
+        mostrarAlertaError("Error", "La fecha de nacimiento no puede ser futura.");
+        return;
+    }
+
+    Date fechaNacimiento = Date.valueOf(dpFechaNacimiento.getValue());
+
+    // Crear la persona
+    Persona persona = new Persona(0, documento, nombre, apellido, fechaNacimiento, telefono, email, direccion);
+    int idPersona = modelo.insertarPersona(persona);
+
+    if (idPersona <= 0) {
+        mostrarAlertaError("Error", "No se pudo agregar la persona.");
+        return;
+    }
+
+    // Cliente
+    if ("Cliente".equals(tipoSeleccionado) || "Ambos".equals(tipoSeleccionado)) {
+        String tipoCliente = cmbTipoCliente.getValue();
+        if (tipoCliente == null) {
+            mostrarAlertaError("Error", "Por favor, selecciona el tipo de cliente.");
             return;
         }
 
-        // Crear la persona en la base de datos a través del Modelo
-        Persona persona = new Persona(0, documento, nombre, apellido, fechaNacimiento, telefono, email, direccion);
-        int idPersona = modelo.insertarPersona(persona);
-
-        if (idPersona > 0) { // Si la inserción fue exitosa
-            // Agregar detalles adicionales dependiendo del tipo de persona (Cliente o
-            // Empleado)
-            if ("Cliente".equals(tipoSeleccionado) || "Ambos".equals(tipoSeleccionado)) {
-                String tipoCliente = cmbTipoCliente.getValue();
-                if (tipoCliente == null) {
-                    mostrarAlertaError("Error", "Por favor, selecciona el tipo de cliente.");
-                    return;
-                }
-                String tarjetaCredito = txtTarjetaCredito.getText();
-                Date fechaRegistro = Date.valueOf(dpFechaRegistro.getValue());
-                Cliente cliente = new Cliente(idPersona, fechaRegistro, tarjetaCredito,
-                        TipoCliente.valueOf(tipoCliente.toUpperCase()));
-                modelo.insertarCliente(idPersona, cliente);
-            }
-
-            if ("Empleado".equals(tipoSeleccionado) || "Ambos".equals(tipoSeleccionado)) {
-                String lugarTrabajo = txtLugarTrabajo.getText();
-                if (lugarTrabajo.isEmpty()) {
-                    mostrarAlertaError("Error", "Por favor, completa el campo de lugar de trabajo.");
-                    return;
-                }
-                double salario;
-                try {
-                    salario = Double.parseDouble(txtSalario.getText());
-                } catch (NumberFormatException e) {
-                    mostrarAlertaError("Error", "Por favor, ingresa un salario válido.");
-                    return;
-                }
-                String estadoLaboral = cmbEstadoLaboral.getValue();
-                if (estadoLaboral == null) {
-                    mostrarAlertaError("Error", "Por favor, selecciona el estado laboral.");
-                    return;
-                }
-                Date fechaContratacion = Date.valueOf(dpFechaContratacion.getValue());
-                Empleado empleado = new Empleado(idPersona, lugarTrabajo, salario,
-                        EstadoLaboral.valueOf(estadoLaboral.toUpperCase()), fechaContratacion);
-                modelo.insertarEmpleado(idPersona, empleado);
-            }
-
-            mostrarAlertaInformacion("Éxito", "Usuario agregado correctamente.");
-            actualizarLista();
-        } else {
-            mostrarAlertaError("Error", "No se pudo agregar la persona.");
+        if (dpFechaRegistro.getValue() == null) {
+            mostrarAlertaError("Error", "Por favor, selecciona la fecha de registro.");
+            return;
         }
+
+        if (dpFechaRegistro.getValue().isAfter(hoy)) {
+            mostrarAlertaError("Error", "La fecha de registro no puede ser futura.");
+            return;
+        }
+
+        String tarjetaCredito = txtTarjetaCredito.getText();
+        Date fechaRegistro = Date.valueOf(dpFechaRegistro.getValue());
+
+        Cliente cliente = new Cliente(idPersona, fechaRegistro, tarjetaCredito,
+                TipoCliente.valueOf(tipoCliente.toUpperCase()));
+        modelo.insertarCliente(idPersona, cliente);
     }
+
+    // Empleado
+    if ("Empleado".equals(tipoSeleccionado) || "Ambos".equals(tipoSeleccionado)) {
+        String lugarTrabajo = txtLugarTrabajo.getText();
+        if (lugarTrabajo.isEmpty()) {
+            mostrarAlertaError("Error", "Por favor, completa el campo de lugar de trabajo.");
+            return;
+        }
+
+        double salario;
+        try {
+            salario = Double.parseDouble(txtSalario.getText());
+            if (salario < 0) {
+                mostrarAlertaError("Error", "El salario debe ser un número positivo.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            mostrarAlertaError("Error", "Por favor, ingresa un salario válido.");
+            return;
+        }
+
+        String estadoLaboral = cmbEstadoLaboral.getValue();
+        if (estadoLaboral == null) {
+            mostrarAlertaError("Error", "Por favor, selecciona el estado laboral.");
+            return;
+        }
+
+        if (dpFechaContratacion.getValue() == null) {
+            mostrarAlertaError("Error", "Por favor, selecciona la fecha de contratación.");
+            return;
+        }
+
+        if (dpFechaContratacion.getValue().isAfter(hoy) ||
+            dpFechaContratacion.getValue().getYear() < 2000 ||
+            dpFechaContratacion.getValue().getYear() > 2024) {
+            mostrarAlertaError("Error", "La fecha de contratación debe estar entre 2000 y 2024.");
+            return;
+        }
+
+        Date fechaContratacion = Date.valueOf(dpFechaContratacion.getValue());
+
+        Empleado empleado = new Empleado(idPersona, lugarTrabajo, salario,
+                EstadoLaboral.valueOf(estadoLaboral.toUpperCase()), fechaContratacion);
+        modelo.insertarEmpleado(idPersona, empleado);
+    }
+
+    mostrarAlertaInformacion("Éxito", "Usuario agregado correctamente.");
+    actualizarLista();
+}
+
 
     public void actualizarLista() {
         // Obtener la lista de personas desde el Modelo
@@ -259,42 +324,61 @@ public class PrimaryController {
         }
     }
 
-    // Método para crear una tarea
-    @FXML
-    private void crearYAsignarTarea() {
-        String descripcion = txtDescripcionTarea.getText();
-        Date fechaEjecucion = (dpFechaEjecucionTarea.getValue() != null) ? Date.valueOf(dpFechaEjecucionTarea.getValue()) : null;
+    // // Método para crear una tarea
+    // @FXML
+    // private void crearYAsignarTarea() {
+    //     String descripcion = txtDescripcionTarea.getText();
+    //     Date fechaEjecucion = (dpFechaEjecucionTarea.getValue() != null) ? Date.valueOf(dpFechaEjecucionTarea.getValue()) : null;
     
-        if (descripcion.isEmpty()) {
-            mostrarAlertaError("Error", "Por favor, ingresa la descripción de la tarea.");
-            return;
-        }
+    //     if (descripcion.isEmpty()) {
+    //         mostrarAlertaError("Error", "Por favor, ingresa la descripción de la tarea.");
+    //         return;
+    //     }
     
-        String documentoEmpleado = txtDocumentoEmpleado.getText();
-        if (documentoEmpleado.isEmpty()) {
-            mostrarAlertaError("Error", "Por favor, ingresa el documento del empleado.");
-            return;
-        }
+    //     String documentoEmpleado = txtDocumentoEmpleado.getText();
+    //     if (documentoEmpleado.isEmpty()) {
+    //         mostrarAlertaError("Error", "Por favor, ingresa el documento del empleado.");
+    //         return;
+    //     }
     
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            TareaDAO tareaDAO = new TareaDAO();
-            int idTarea = tareaDAO.crearTarea(descripcion, fechaEjecucion);
+    //     try (Connection conn = DatabaseConnection.getConnection()) {
+    //         TareaDAO tareaDAO = new TareaDAO();
+    //         int idTarea = tareaDAO.crearTarea(descripcion, fechaEjecucion);
     
-            if (idTarea > 0) { // Si la tarea se creó correctamente
-                boolean asignada = tareaDAO.asignarTarea(documentoEmpleado, idTarea);
-                if (asignada) {
-                    mostrarAlertaInformacion("Éxito", "Tarea creada y asignada correctamente.");
-                } else {
-                    mostrarAlertaError("Error", "No se pudo asignar la tarea.");
-                }
-            } else {
-                mostrarAlertaError("Error", "No se pudo crear la tarea.");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            mostrarAlertaError("Error", "Ocurrió un problema al asignar la tarea.");
-        }
+    //         if (idTarea > 0) { // Si la tarea se creó correctamente
+    //             boolean asignada = tareaDAO.asignarTarea(documentoEmpleado, idTarea);
+    //             if (asignada) {
+    //                 mostrarAlertaInformacion("Éxito", "Tarea creada y asignada correctamente.");
+    //             } else {
+    //                 mostrarAlertaError("Error", "No se pudo asignar la tarea.");
+    //             }
+    //         } else {
+    //             mostrarAlertaError("Error", "No se pudo crear la tarea.");
+    //         }
+    //     } catch (SQLException e) {
+    //         e.printStackTrace();
+    //         mostrarAlertaError("Error", "Ocurrió un problema al asignar la tarea.");
+    //     }
+    // }
+    
+    private void marcarError(Control campo) {
+    if (!campo.getStyleClass().contains("error")) {
+        campo.getStyleClass().add("error");
     }
+}
+
+private void limpiarErrores() {
+    txtNombre.getStyleClass().remove("error");
+    txtApellido.getStyleClass().remove("error");
+    txtEmail.getStyleClass().remove("error");
+    txtSalario.getStyleClass().remove("error");
+    dpFechaNacimiento.getStyleClass().remove("error");
+    dpFechaContratacion.getStyleClass().remove("error");
+    cmbEstadoLaboral.getStyleClass().remove("error");
+    cmbTipoCliente.getStyleClass().remove("error");
+    dpFechaRegistro.getStyleClass().remove("error");
+}
+
     
 
     // Método para mostrar alerta de información

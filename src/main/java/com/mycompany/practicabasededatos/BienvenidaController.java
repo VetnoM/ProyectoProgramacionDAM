@@ -57,6 +57,11 @@ public class BienvenidaController  {
     private void cambiarReservas() throws IOException {
         switchFxml("reserva.fxml");
     }
+
+    @FXML
+    private void cambiarServicios() throws IOException{
+        switchFxml("servicios.fxml");
+    }
     
     @FXML
     private void switchFxml(String nomFxml) throws IOException {

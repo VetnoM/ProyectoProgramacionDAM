@@ -15,20 +15,25 @@ import java.time.temporal.ChronoUnit;
 public class FacturaController {
 
     @FXML
-    private Label lblNumeroReserva, lblCliente, lblFechaInicio, lblFechaFin, lblPrecioBase, lblIva, lblPrecioTotal, lblTotalDias;
+    private Label lblNumeroReserva, lblCliente, lblFechaInicio, lblFechaFin, lblPrecioBase, lblIva, lblPrecioTotal,
+            lblTotalDias, lblServicio, lblDescuento;
 
     @FXML
     private ComboBox<String> cmbMetodoPago;
 
     private FacturaDAO facturaDAO = new FacturaDAO();
     private Reserva reserva;
-    private double iva; // IVA recibido desde el ReservaController
+    private double iva;
+    private boolean facturacionCompletada = false;
 
     @FXML
     public void initialize() {
         // Configurar las opciones del ComboBox para el método de pago
         cmbMetodoPago.getItems().addAll("Efectivo", "Tarjeta de Crédito", "Transferencia Bancaria");
         cmbMetodoPago.setPromptText("Selecciona un método de pago");
+
+          // Escuchar cambios en el método de pago
+    cmbMetodoPago.setOnAction(e -> aplicarDescuentoSiCorresponde());
     }
 
     public void setReserva(Reserva reserva, double iva) {
@@ -55,6 +60,8 @@ public class FacturaController {
 
             double precioTotal = precioBase + montoIva;
             lblPrecioTotal.setText(String.format("%.2f", precioTotal).replace(",", "."));
+
+            lblDescuento.setText("");
         }
     }
 
@@ -66,29 +73,41 @@ public class FacturaController {
                 mostrarAlerta("Campos Vacíos", "Por favor, selecciona un método de pago.");
                 return;
             }
-    
+
             double precioBase = Double.parseDouble(lblPrecioBase.getText().replace(",", "."));
             double montoIva = Double.parseDouble(lblIva.getText().replace(",", "."));
-            double precioTotal = Double.parseDouble(lblPrecioTotal.getText().replace(",", "."));
-    
+            double precioTotal = precioBase + montoIva;
+            double descuento = 0.0;
+
+                  // Aplicar descuento si el pago es en efectivo
+        if (metodoPago.equalsIgnoreCase("Efectivo")) {
+            descuento = (precioTotal * 0.10);
+            precioTotal -= descuento;
+            lblDescuento.setText("-10%");
+        } else {
+            lblDescuento.setText("");
+        }
+
             LocalDate fechaEmision = LocalDate.now();
             int idReserva = reserva.getId_reserva();
-    
+
             // Crear la factura
             Factura factura = new Factura(fechaEmision, metodoPago, precioBase, montoIva, precioTotal, idReserva);
-            int idFactura = facturaDAO.crearFactura(factura);
-    
+            facturaDAO.crearFactura(factura);
+
             // Actualizar el estado de la reserva a "Facturado"
             boolean exito = facturaDAO.actualizarEstadoReserva(idReserva, "Facturado");
             if (exito) {
-                mostrarAlerta("Éxito", "Factura creada con éxito. ID: " + idFactura + ". Estado de la reserva actualizado.");
+                facturacionCompletada = true; // ✅ Marcar que la facturación fue completada
+                mostrarAlerta("Estado actualizado", "La reserva fue marcada como 'Facturado'.");
             } else {
                 mostrarAlerta("Error", "Factura creada pero no se pudo actualizar el estado de la reserva.");
             }
-    
+
             // Cerrar la ventana de facturación
             Stage stage = (Stage) cmbMetodoPago.getScene().getWindow();
             stage.close();
+
         } catch (NumberFormatException e) {
             mostrarAlerta("Error", "Formato de número inválido. Asegúrate de que los valores sean correctos.");
             e.printStackTrace();
@@ -97,8 +116,6 @@ public class FacturaController {
             e.printStackTrace();
         }
     }
-    
-
 
     @FXML
     private void cerrarVentana() {
@@ -116,4 +133,28 @@ public class FacturaController {
         alerta.setContentText(mensaje);
         alerta.showAndWait();
     }
+
+    public boolean isFacturacionCompletada() {
+        return facturacionCompletada;
+    }
+
+    private void aplicarDescuentoSiCorresponde() {
+    String metodoPago = cmbMetodoPago.getValue();
+    if (metodoPago == null || metodoPago.isEmpty()) return;
+
+    double precioBase = Double.parseDouble(lblPrecioBase.getText().replace(",", "."));
+    double montoIva = precioBase * (iva / 100);
+    double precioTotal = precioBase + montoIva;
+
+    if (metodoPago.equalsIgnoreCase("Efectivo")) {
+        double descuento = precioTotal * 0.10;
+        precioTotal -= descuento;
+        lblDescuento.setText("-10%");
+    } else {
+        lblDescuento.setText("");
+    }
+
+    lblIva.setText(String.format("%.2f", montoIva).replace(",", "."));
+    lblPrecioTotal.setText(String.format("%.2f", precioTotal).replace(",", "."));
+}
 }
