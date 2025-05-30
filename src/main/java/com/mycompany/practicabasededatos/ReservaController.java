@@ -4,7 +4,6 @@ import com.mycompany.practicabasededatos.modelo.Reserva;
 import com.mycompany.practicabasededatos.modelo.TipoReserva;
 import com.mycompany.practicabasededatos.modelo.Modelo;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,34 +16,42 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javafx.util.Callback;
 
-// import java.time.LocalDate;
-// import com.mycompany.practicabasededatos.FacturaController;
+/**
+ * Controlador para la gestión de reservas.
+ * Permite crear, visualizar, facturar y eliminar reservas, así como gestionar la disponibilidad de habitaciones.
+ */
 public class ReservaController {
 
+    // Selectores de fecha para la reserva, inicio y fin de la estancia
     @FXML
     private DatePicker dateFechaReserva;
     @FXML
     private DatePicker dateFechaInicio;
     @FXML
     private DatePicker dateFechaFin;
+    // ComboBox para seleccionar el tipo de reserva (AD, MP)
     @FXML
     private ComboBox<String> comboTipoReserva;
+    // Campo de texto para mostrar el tipo de IVA aplicado
     @FXML
     private TextField txtTipoIVA;
+    // Campo de texto para mostrar el precio total de la reserva
     @FXML
     private TextField txtPrecioTotalReserva;
+    // ListView para mostrar las reservas existentes
     @FXML
     private ListView<Reserva> listReservas;
+    // ListView para mostrar habitaciones disponibles
     @FXML
     private ListView<String> listHabitacionesSinReserva;
+    // ListView para mostrar personas/clientes disponibles
     @FXML
     private ListView<String> listPersonas;
+    // Botones para crear, guardar, eliminar y facturar reservas
     @FXML
     private Button btnCrearReserva;
     @FXML
@@ -54,8 +61,12 @@ public class ReservaController {
     @FXML
     private Button btnFacturar;
 
+    // Instancia del modelo para acceder a la lógica de negocio y datos
     private Modelo modelo = new Modelo();
 
+    /**
+     * Inicializa la vista, configurando ComboBox, ListView y listeners.
+     */
     @FXML
     public void initialize() {
         btnFacturar.setDisable(true);
@@ -69,6 +80,7 @@ public class ReservaController {
         txtTipoIVA.setEditable(false);
         txtPrecioTotalReserva.setEditable(false);
 
+        // Listener para marcar días ocupados al seleccionar una habitación
         listHabitacionesSinReserva.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 String numeroHabitacion = newVal.split(" ")[0];
@@ -79,6 +91,7 @@ public class ReservaController {
             }
         });
 
+        // Listener para actualizar IVA al seleccionar una persona
         listPersonas.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 String documentoIdentidad = newVal.split(" - ")[0];
@@ -97,6 +110,7 @@ public class ReservaController {
             }
         });
 
+        // Listener para habilitar/deshabilitar el botón de facturar según el estado de la reserva
         listReservas.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 String estado = newVal.getEstado();
@@ -106,109 +120,97 @@ public class ReservaController {
                     btnFacturar.setDisable(false);
                 }
             } else {
-                btnFacturar.setDisable(true); // Nada seleccionado
+                btnFacturar.setDisable(true);
             }
         });
-
     }
 
+    /**
+     * Crea una nueva reserva validando los datos del formulario.
+     */
     @FXML
     private void crearReserva() {
         try {
-
-            // ✅ 1. Validar que se haya seleccionado una habitación
+            // Validar selección de habitación
             String habitacionSeleccionada = listHabitacionesSinReserva.getSelectionModel().getSelectedItem();
             if (habitacionSeleccionada == null) {
                 mostrarAlertaError("Error", "Por favor, selecciona una habitación.");
                 return;
             }
-
-            // ✅ 2. Extraer el número de la habitación (suponiendo que el formato es "101 -
-            // Habitación Doble")
-            String numeroHabitacion = habitacionSeleccionada.split(" ")[0]; // Extrae solo el número
-
-            // ✅ 3. Obtener el ID real de la habitación desde la base de datos
+            String numeroHabitacion = habitacionSeleccionada.split(" ")[0];
             int idHabitacion = modelo.obtenerIdHabitacionPorNumero(numeroHabitacion);
             if (idHabitacion == -1) {
                 mostrarAlertaError("Error", "No se encontró la habitación en la base de datos.");
                 return;
             }
 
-            // ✅ 4. Validar que se haya seleccionado una persona
+            // Validar selección de persona
             String personaSeleccionada = listPersonas.getSelectionModel().getSelectedItem();
             if (personaSeleccionada == null) {
                 mostrarAlertaError("Error", "Por favor, selecciona una persona.");
                 return;
             }
-
-            // ✅ 5. Extraer el documento de identidad del cliente
             String documentoIdentidad = personaSeleccionada.split(" - ")[0];
             if (documentoIdentidad.isEmpty()) {
                 mostrarAlertaError("Error", "No se pudo obtener el documento de identidad del cliente.");
                 return;
             }
-
-            // ✅ 6. Obtener el ID del cliente
             int idCliente = modelo.obtenerIdClientePorDocumento(documentoIdentidad);
             if (idCliente == -1) {
                 mostrarAlertaError("Error", "No se encontró el cliente en la base de datos.");
                 return;
             }
 
-            // ✅ 7. Validar que se haya seleccionado un tipo de reserva
+            // Validar tipo de reserva
             String tipoReserva = comboTipoReserva.getValue();
             if (tipoReserva == null || tipoReserva.isEmpty()) {
                 mostrarAlertaError("Error", "Por favor, selecciona un tipo de reserva.");
                 return;
             }
 
-            // ✅ 8. Validar fechas
+            // Validar fechas
             if (dateFechaInicio.getValue() == null || dateFechaFin.getValue() == null
                     || dateFechaReserva.getValue() == null) {
                 mostrarAlertaError("Error", "Por favor, selecciona todas las fechas.");
                 return;
             }
-
             if (dateFechaInicio.getValue().isAfter(dateFechaFin.getValue())) {
                 mostrarAlertaError("Error", "La fecha de inicio no puede ser posterior a la fecha de fin.");
                 return;
             }
 
-            // 🆕 Verificar si la habitación ya tiene una reserva que se solapa con las
-            // fechas seleccionadas
+            // Verificar solapamiento de reservas
             LocalDate fechaInicio = dateFechaInicio.getValue();
             LocalDate fechaFin = dateFechaFin.getValue();
-
             if (modelo.existeSolapamientoReserva(idHabitacion, fechaInicio, fechaFin)) {
                 mostrarAlertaError("Error", "La habitación ya está reservada durante ese período.");
                 return;
             }
 
-            // ✅ 9. Calcular precio total con IVA
+            // Calcular precio base de la reserva
             double precioBase = calcularPrecioBase(dateFechaInicio.getValue(), dateFechaFin.getValue(), tipoReserva);
-            double precioTotal = precioBase; // Guardar solo el precio base, sin IVA
+            double precioTotal = precioBase;
 
-            // ✅ 10. Crear objeto Reserva con el ID real de la habitación
+            // Crear objeto Reserva
             Reserva nuevaReserva = new Reserva(
-                    0, // ID generado automáticamente en la base de datos
+                    0,
                     TipoReserva.valueOf(tipoReserva),
                     dateFechaInicio.getValue(),
                     dateFechaFin.getValue(),
                     dateFechaReserva.getValue(),
                     precioTotal,
                     idCliente,
-                    idHabitacion, // Ahora usamos el ID real obtenido de la BD
+                    idHabitacion,
                     "Pendiente de facturar",
                     habitacionSeleccionada);
 
-            // 11. Registrar la reserva en la base de datos
+            // Registrar la reserva en la base de datos
             boolean exito = modelo.registrarReserva(nuevaReserva);
             if (exito) {
-                // 12. Actualizar estado de la habitación a "Ocupada"
                 modelo.actualizarEstadoHabitacion(idHabitacion, "Ocupada");
                 mostrarAlertaInformacion("Éxito", "Reserva creada correctamente.");
-                cargarReservasEnLista(); // Actualizar lista de reservas
-                cargarHabitacionesSinReserva(); // Actualizar lista de habitaciones disponibles
+                cargarReservasEnLista();
+                cargarHabitacionesSinReserva();
             } else {
                 mostrarAlertaError("Error", "No se pudo crear la reserva.");
             }
@@ -219,27 +221,29 @@ public class ReservaController {
         }
     }
 
-    // Método para calcular el precio base de la reserva
+    /**
+     * Calcula el precio base de la reserva según el tipo y la duración.
+     */
     private double calcularPrecioBase(LocalDate fechaInicio, LocalDate fechaFin, String tipoReserva) {
         long dias = ChronoUnit.DAYS.between(fechaInicio, fechaFin);
         double precioPorDia;
-
         switch (tipoReserva) {
-            case "AD": // Alojamiento y desayuno
+            case "AD":
                 precioPorDia = 50.0;
                 break;
-            case "MP": // Media pensión
+            case "MP":
                 precioPorDia = 75.0;
                 break;
             default:
                 precioPorDia = 0.0;
                 break;
         }
-
         return dias * precioPorDia;
     }
 
-    // Método para cargar las reservas en la lista
+    /**
+     * Carga las reservas en el ListView.
+     */
     private void cargarReservasEnLista() {
         ObservableList<Reserva> reservas = modelo.obtenerReservas();
         listReservas.setItems(reservas);
@@ -251,7 +255,6 @@ public class ReservaController {
                 if (empty || reserva == null) {
                     setText(null);
                 } else {
-                    // Mostrar información descriptiva de la reserva, incluyendo el estado
                     String numeroHabitacion = reserva.getNumeroHabitacion() != null ? reserva.getNumeroHabitacion()
                             : "Sin asignar";
                     setText("Habitación: " + numeroHabitacion + " | Tipo: " + reserva.getTipo_reserva()
@@ -262,7 +265,9 @@ public class ReservaController {
         });
     }
 
-    // Método para cargar las habitaciones sin reserva
+    /**
+     * Carga las habitaciones disponibles en el ListView.
+     */
     private void cargarHabitacionesSinReserva() {
         try {
             ObservableList<String> habitaciones = modelo.obtenerHabitacionesConUltimaFecha();
@@ -273,30 +278,32 @@ public class ReservaController {
         }
     }
 
+    /**
+     * Carga los clientes/personas en el ListView.
+     */
     private void cargarClientes() {
         ObservableList<String> personas = modelo.obtenerTodosLosClientes();
         listPersonas.setItems(personas);
     }
 
+    /**
+     * Abre la ventana de facturación para la reserva seleccionada.
+     */
     @FXML
-
     private void abrirVentanaFacturacion() {
         try {
-            // Cargar el archivo FXML de la ventana de facturación
             FXMLLoader loader = new FXMLLoader(getClass().getResource("factura.fxml"));
             Parent root = loader.load();
 
-            // Obtener el controlador de la ventana de facturación
             FacturaController facturaController = loader.getController();
 
-            // Pasar la reserva seleccionada al FacturaController
             Reserva reservaSeleccionada = listReservas.getSelectionModel().getSelectedItem();
             if (reservaSeleccionada == null) {
                 mostrarAlertaError("Error", "Por favor, selecciona una reserva para facturar.");
                 return;
             }
 
-            // Determinar el tipo de cliente (cliente, empleado o ambos) según el id_cliente
+            // Determinar el tipo de cliente y el IVA correspondiente
             String tipoCliente = modelo.obtenerTipoClientePorId(reservaSeleccionada.getId_cliente());
             double iva;
             if (tipoCliente == null) {
@@ -322,23 +329,19 @@ public class ReservaController {
             facturaController.setReserva(reservaSeleccionada, iva);
 
             if (facturaController.isFacturacionCompletada()) {
-                // solo si se completó la facturación
-                actualizarTablaReservas(); // o lo que uses para actualizar la vista
+                actualizarTablaReservas();
             }
 
-
-
-            // Crear la ventana emergente
             Stage stage = new Stage();
             stage.setTitle("Facturación");
             stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL); // Bloquear la ventana principal mientras esta está abierta
+            stage.initModality(Modality.APPLICATION_MODAL);
             stage.showAndWait();
 
-            // 🆕 Actualizar estado de la reserva a "Facturado"
-if (facturaController.isFacturacionCompletada()) {
-    cargarReservasEnLista(); // ✅ Solo actualizar la vista
-}
+            // Actualizar estado de la reserva a "Facturado" si corresponde
+            if (facturaController.isFacturacionCompletada()) {
+                cargarReservasEnLista();
+            }
 
         } catch (IOException e) {
             mostrarAlertaError("Error", "No se pudo abrir la ventana de facturación: " + e.getMessage());
@@ -349,14 +352,19 @@ if (facturaController.isFacturacionCompletada()) {
             mostrarAlertaError("Error", "Esta reserva ya fue facturada.");
             return;
         }
-
     }
 
+    /**
+     * Actualiza la tabla de reservas en la vista.
+     */
     private void actualizarTablaReservas() {
-        List<Reserva> reservas = modelo.obtenerReservas(); // o reservaDAO.obtenerReservas()
+        List<Reserva> reservas = modelo.obtenerReservas();
         listReservas.getItems().setAll(reservas);
     }
 
+    /**
+     * Marca los días ocupados en los DatePicker según las reservas existentes de la habitación.
+     */
     private void marcarDiasOcupadosEnDatePicker(int idHabitacion) {
         List<LocalDate[]> fechasOcupadas = modelo.obtenerFechasReservadasHabitacion(idHabitacion);
 
@@ -371,7 +379,7 @@ if (facturaController.isFacturacionCompletada()) {
                     if (!empty && (date.isEqual(inicio) || date.isEqual(fin)
                             || (date.isAfter(inicio) && date.isBefore(fin)))) {
                         setDisable(true);
-                        setStyle("-fx-background-color: #ff6666;"); // rojo claro
+                        setStyle("-fx-background-color: #ff6666;");
                     }
                 }
             }
@@ -380,10 +388,13 @@ if (facturaController.isFacturacionCompletada()) {
         dateFechaInicio.setDayCellFactory(dayCellFactory);
         dateFechaFin.setDayCellFactory(dayCellFactory);
         dateFechaReserva.setDayCellFactory(dayCellFactory);
-
     }
 
     // Métodos para mostrar alertas
+
+    /**
+     * Muestra una alerta de información.
+     */
     public static void mostrarAlertaInformacion(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle(titulo);
@@ -392,6 +403,9 @@ if (facturaController.isFacturacionCompletada()) {
         alerta.showAndWait();
     }
 
+    /**
+     * Muestra una alerta de error.
+     */
     public static void mostrarAlertaError(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.ERROR);
         alerta.setTitle(titulo);

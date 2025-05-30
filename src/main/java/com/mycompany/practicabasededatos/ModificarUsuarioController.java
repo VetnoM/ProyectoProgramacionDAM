@@ -15,26 +15,44 @@ import javafx.collections.ObservableList;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Controlador para la vista de modificación de usuarios (personas, clientes y empleados).
+ * Permite buscar, mostrar y actualizar datos de usuarios.
+ */
 public class ModificarUsuarioController {
 
+    // Campo de texto para el documento de identidad
     @FXML private TextField txtDocumento;
+    // Campo de texto para la dirección
     @FXML private TextField txtDireccion;
+    // Campo de texto para el correo electrónico
     @FXML private TextField txtCorreo;
+    // ComboBox para seleccionar el tipo de cliente
     @FXML private ComboBox<TipoCliente> cmbTipoCliente;
+    // Campo de texto para el salario (empleado)
     @FXML private TextField txtSalario;
+    // Campo de texto para el lugar de trabajo (empleado)
     @FXML private TextField txtLugarTrabajo;
+    // ComboBox para seleccionar el estado laboral (empleado)
     @FXML private ComboBox<EstadoLaboral> cmbEstadoLaboral;
-    @FXML private ListView<String> listViewUsuarios;  // Muestra coincidencias por documento
+    // ListView para mostrar coincidencias de usuarios por documento
+    @FXML private ListView<String> listViewUsuarios;
+    // Botón para buscar usuario
     @FXML private Button btnBuscar;
 
+    // DAOs para acceder a la base de datos
     private PersonaDAO personaDAO = new PersonaDAO();
     private ClienteDAO clienteDAO = new ClienteDAO();
     private EmpleadoDAO empleadoDAO = new EmpleadoDAO();
 
+    // Instancias actuales de persona, cliente y empleado seleccionados
     private Persona personaActual;
     private Cliente clienteActual;
     private Empleado empleadoActual;
 
+    /**
+     * Inicializa la vista, cargando los valores de los ComboBox y configurando el ListView.
+     */
     @FXML
     public void initialize() {
         // Cargar valores en los ComboBox
@@ -50,6 +68,9 @@ public class ModificarUsuarioController {
         });
     }
 
+    /**
+     * Busca un usuario por documento y muestra sus datos si existe.
+     */
     @FXML
     public void buscarUsuario() {
         String documento = txtDocumento.getText().trim();
@@ -93,12 +114,15 @@ public class ModificarUsuarioController {
                 cmbEstadoLaboral.setValue(null);
             }
     
-        } catch (Exception e) {  // Capturamos cualquier otro error que pueda ocurrir (aunque se recomienda especificar tipos de excepciones)
+        } catch (Exception e) {
             mostrarAlerta("Error", "No se pudo realizar la búsqueda.");
             e.printStackTrace();
         }
     }
     
+    /**
+     * Guarda los cambios realizados en los datos del usuario.
+     */
     @FXML
     public void guardarCambios() {
         if (personaActual == null) {
@@ -134,6 +158,9 @@ public class ModificarUsuarioController {
         }
     }
 
+    /**
+     * Busca usuarios por coincidencia parcial de documento y los muestra en el ListView.
+     */
     @FXML
     public void buscarUsuariosPorDocumento() {
         String documento = txtDocumento.getText().trim();
@@ -158,6 +185,9 @@ public class ModificarUsuarioController {
         }
     }
 
+    /**
+     * Limpia los campos del formulario.
+     */
     private void limpiarCampos() {
         txtDireccion.clear();
         txtCorreo.clear();
@@ -167,6 +197,9 @@ public class ModificarUsuarioController {
         cmbEstadoLaboral.setValue(null);
     }
 
+    /**
+     * Muestra una alerta informativa.
+     */
     private void mostrarAlerta(String titulo, String mensaje) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titulo);

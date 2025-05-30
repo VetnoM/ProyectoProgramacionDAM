@@ -25,6 +25,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
 
+/**
+ * Clase Modelo que centraliza la lógica de negocio y acceso a datos de la aplicación.
+ * Gestiona clientes, empleados, personas, tareas, habitaciones y reservas.
+ */
 public class Modelo {
 
     // Logger para registrar mensajes de error y depuración
@@ -38,11 +42,13 @@ public class Modelo {
     private HabitacionDAO habitacionDAO = new HabitacionDAO();
     private ReservaDAO reservaDAO = new ReservaDAO();
 
-    // INCIO CLIENTES
+    // ===================== CLIENTES =====================
 
-
-
-    // Método para insertar un cliente
+    /**
+     * Inserta un cliente en la base de datos.
+     * @param idPersona ID de la persona asociada.
+     * @param cliente Objeto Cliente a insertar.
+     */
     public void insertarCliente(int idPersona, Cliente cliente) {
         try {
             if (idPersona != -1) {
@@ -56,32 +62,38 @@ public class Modelo {
         }
     }
 
-    // Método para obtener clientes
+    /**
+     * Obtiene la lista de clientes como ObservableList.
+     */
     public ObservableList<Cliente> obtenerClientes() {
         try {
-            List<Cliente> listaClientes = clienteDAO.obtenerClientes(); // Llama al DAO para obtener los clientes
+            List<Cliente> listaClientes = clienteDAO.obtenerClientes();
             return FXCollections.observableArrayList(listaClientes);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error al obtener los clientes", e);
         }
-        return FXCollections.observableArrayList(); // Devuelve una lista vacía en caso de error
+        return FXCollections.observableArrayList();
     }
 
-    // Método para obtener el ID de un cliente por DNI
+    /**
+     * Obtiene el ID de un cliente a partir de su DNI.
+     */
     public int obtenerIdClientePorDni(String dni) {
         try {
-            return clienteDAO.obtenerIdClientePorDni(dni); // Llama al DAO para buscar el ID
+            return clienteDAO.obtenerIdClientePorDni(dni);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error al obtener el ID del cliente por DNI", e);
         }
-        return -1; // Devuelve -1 si ocurre un error
+        return -1;
     }
 
-    // FIN CLIENTES
+    // ===================== EMPLEADOS =====================
 
-    // INICIO EMPLEADOS
-
-    // Método para insertar un empleado
+    /**
+     * Inserta un empleado en la base de datos.
+     * @param idPersona ID de la persona asociada.
+     * @param empleado Objeto Empleado a insertar.
+     */
     public void insertarEmpleado(int idPersona, Empleado empleado) {
         try {
             if (idPersona != -1) {
@@ -94,7 +106,9 @@ public class Modelo {
         }
     }
 
-    // Método para obtener la lista de empleados
+    /**
+     * Obtiene la lista de empleados.
+     */
     public List<Empleado> obtenerEmpleados() {
         try {
             return empleadoDAO.obtenerEmpleados();
@@ -104,17 +118,18 @@ public class Modelo {
         }
     }
 
+    // ===================== PERSONAS =====================
 
-    // FIN EMPLEADOS
-
-    // INICIO PERSONAS
-
-    // Método para insertar una persona
+    /**
+     * Inserta una persona en la base de datos.
+     */
     public int insertarPersona(Persona persona) {
         return personaDAO.insertarPersona(persona);
     }
 
-    // Método para obtener personas únicas
+    /**
+     * Obtiene una lista observable de personas únicas (clientes o empleados).
+     */
     public ObservableList<String> obtenerPersonasUnicas() {
         ObservableList<String> personas = FXCollections.observableArrayList();
         String sql = "SELECT DISTINCT p.documento_identidad, p.nombre, p.apellido, " +
@@ -139,12 +154,16 @@ public class Modelo {
         return personas;
     }
 
-    // Método para obtener personas
+    /**
+     * Obtiene la lista de personas.
+     */
     public ArrayList<Persona> obtenerPersonas() {
         return personaDAO.obtenerPersonas();
     }
 
-    // Método para cargar la lista de personas
+    /**
+     * Carga la lista de personas en un ListView.
+     */
     public void cargarListaPersonas(ListView<String> listPersonas) {
         ArrayList<Persona> personas = obtenerPersonas();
         listPersonas.getItems().clear();
@@ -153,68 +172,81 @@ public class Modelo {
         }
     }
 
-    // FIN PERSONAS
+    // ===================== TAREAS =====================
 
-    // INICIO PARTE DE TAREAS
-
-    // Método para obtener tareas pendientes
+    /**
+     * Obtiene las tareas pendientes.
+     */
     public LinkedList<Tarea> obtenerTareasPendientes() {
         return tareaDAO.obtenerTareasPendientes();
     }
 
-    // Método para obtener tareas en proceso
+    /**
+     * Obtiene las tareas en proceso.
+     */
     public LinkedList<Tarea> obtenerTareasEnProceso() {
         return tareaDAO.obtenerTareasEnProceso();
     }
 
-        // Método para asignar una tarea a un empleado
-public boolean asignarTareaAEmpleado(Tarea tarea, Empleado empleado) {
-    if (tarea == null || empleado == null) return false;
-
-    if (tareaDAO.tieneTarea(tarea.getId_tarea(), empleado.getId_empleado())) {
-        return false; // Ya asignada, no continuar
+    /**
+     * Asigna una tarea a un empleado si no está ya asignada.
+     */
+    public boolean asignarTareaAEmpleado(Tarea tarea, Empleado empleado) {
+        if (tarea == null || empleado == null) return false;
+        if (tareaDAO.tieneTarea(tarea.getId_tarea(), empleado.getId_empleado())) {
+            return false; // Ya asignada, no continuar
+        }
+        return tareaDAO.asignarTareaAEmpleado(tarea.getId_tarea(), empleado.getId_empleado());
     }
 
-    return tareaDAO.asignarTareaAEmpleado(tarea.getId_tarea(), empleado.getId_empleado());
-}
+    /**
+     * Crea una nueva tarea.
+     */
+    public int crearTarea(String descripcion, Date fechaCreacion, Date fechaEjecucion) throws SQLException {
+        TareaDAO dao = new TareaDAO();
+        return dao.crearTarea(descripcion, fechaCreacion, fechaEjecucion, "PENDIENTE");
+    }
 
-    // Método para crear una tarea
-public int crearTarea(String descripcion, Date fechaCreacion, Date fechaEjecucion) throws SQLException {
-    TareaDAO dao = new TareaDAO();
-    return dao.crearTarea(descripcion, fechaCreacion, fechaEjecucion, "PENDIENTE");
-}
-
-
-
-
+    /**
+     * Obtiene las tareas asignadas a un empleado.
+     */
     public List<Tarea> obtenerTareasAsignadasAEmpleado(int idEmpleado) {
-    return tareaDAO.obtenerTareasAsignadasAEmpleado(idEmpleado);
-}
-
-public boolean marcarTareaEmpleadoComoCompletada(int idEmpleado, int idTarea) {
-    return tareaDAO.marcarTareaEmpleadoComoCompletada(idEmpleado, idTarea);
-}
-
-public boolean yaTieneAsignado(Tarea tarea, Empleado empleado) {
-    if (tareaDAO.yaTieneAsingado(tarea.getId_tarea(), empleado.getId_empleado())) {
-        return false; // ya asignada
+        return tareaDAO.obtenerTareasAsignadasAEmpleado(idEmpleado);
     }
 
-    return tareaDAO.asignarTareaAEmpleado(tarea.getId_tarea(), empleado.getId_empleado());
-}
-
-public ObservableList<Empleado> obtenerEmpleadosConTareas() {
-    try {
-        List<Empleado> lista = tareaDAO.obtenerEmpleadosConTareas();
-        return FXCollections.observableArrayList(lista);
-    } catch (SQLException e) {
-        LOGGER.log(Level.SEVERE, "Error al obtener empleados con tareas", e);
-        return FXCollections.observableArrayList();
+    /**
+     * Marca una tarea de un empleado como completada.
+     */
+    public boolean marcarTareaEmpleadoComoCompletada(int idEmpleado, int idTarea) {
+        return tareaDAO.marcarTareaEmpleadoComoCompletada(idEmpleado, idTarea);
     }
-}
 
+    /**
+     * Verifica si una tarea ya está asignada a un empleado.
+     */
+    public boolean yaTieneAsignado(Tarea tarea, Empleado empleado) {
+        if (tareaDAO.yaTieneAsingado(tarea.getId_tarea(), empleado.getId_empleado())) {
+            return false; // ya asignada
+        }
+        return tareaDAO.asignarTareaAEmpleado(tarea.getId_tarea(), empleado.getId_empleado());
+    }
 
-      // Asignar tarea a empleado por documento y id tarea
+    /**
+     * Obtiene los empleados que tienen tareas asignadas.
+     */
+    public ObservableList<Empleado> obtenerEmpleadosConTareas() {
+        try {
+            List<Empleado> lista = tareaDAO.obtenerEmpleadosConTareas();
+            return FXCollections.observableArrayList(lista);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error al obtener empleados con tareas", e);
+            return FXCollections.observableArrayList();
+        }
+    }
+
+    /**
+     * Asigna una tarea a un empleado por documento e id de tarea.
+     */
     public boolean asignarTarea(String documentoEmpleado, int idTarea) {
         try {
             int idEmpleado = tareaDAO.obtenerIdEmpleadoPorDocumento(documentoEmpleado);
@@ -225,16 +257,17 @@ public ObservableList<Empleado> obtenerEmpleadosConTareas() {
         }
     }
 
+    /**
+     * Obtiene la lista de todas las tareas.
+     */
+    public ObservableList<Tarea> obtenerTareas() {
+        List<Tarea> listaTareas = tareaDAO.obtenerTareas();
+        return FXCollections.observableArrayList(listaTareas);
+    }
 
-
-
-    // Método para obtener la lista de tareas
-public ObservableList<Tarea> obtenerTareas() {
-    List<Tarea> listaTareas = tareaDAO.obtenerTareas();
-    return FXCollections.observableArrayList(listaTareas);
-}
-
-    // Método para actualizar una tarea
+    /**
+     * Actualiza una tarea.
+     */
     public boolean actualizarTarea(Tarea tarea) {
         try {
             tareaDAO.actualizarTarea(tarea);
@@ -245,7 +278,9 @@ public ObservableList<Tarea> obtenerTareas() {
         return false;
     }
 
-    // Método para eliminar una tarea
+    /**
+     * Elimina una tarea.
+     */
     public boolean eliminarTarea(int idTarea) {
         try {
             tareaDAO.eliminarTarea(idTarea);
@@ -256,36 +291,34 @@ public ObservableList<Tarea> obtenerTareas() {
         return false;
     }
 
+    /**
+     * Obtiene una lista combinada de tareas pendientes y en proceso.
+     */
+    public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
+        LinkedList<Tarea> tareasPendientes = new LinkedList<>();
+        LinkedList<Tarea> tareasEnProceso = new LinkedList<>();
 
-
-    // Método para obtener las tareas clasificadas
-public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
-    LinkedList<Tarea> tareasPendientes = new LinkedList<>();
-    LinkedList<Tarea> tareasEnProceso = new LinkedList<>();
-
-    List<Tarea> todasTareas = tareaDAO.obtenerTareas();
-    for (Tarea tarea : todasTareas) {
-        if (tarea.getEstadoTarea() == EstadoTarea.PENDIENTE) {
-            tareasPendientes.add(tarea);
-        } else if (tarea.getEstadoTarea() == EstadoTarea.EN_PROCESO) {
-            tareasEnProceso.add(tarea);
+        List<Tarea> todasTareas = tareaDAO.obtenerTareas();
+        for (Tarea tarea : todasTareas) {
+            if (tarea.getEstadoTarea() == EstadoTarea.PENDIENTE) {
+                tareasPendientes.add(tarea);
+            } else if (tarea.getEstadoTarea() == EstadoTarea.EN_PROCESO) {
+                tareasEnProceso.add(tarea);
+            }
         }
+
+        LinkedList<Tarea> tareasClasificadas = new LinkedList<>();
+        tareasClasificadas.addAll(tareasPendientes);
+        tareasClasificadas.addAll(tareasEnProceso);
+
+        return tareasClasificadas;
     }
 
-    LinkedList<Tarea> tareasClasificadas = new LinkedList<>();
-    tareasClasificadas.addAll(tareasPendientes);
-    tareasClasificadas.addAll(tareasEnProceso);
+    // ===================== HABITACIONES =====================
 
-    return tareasClasificadas;
-}
-
-
-
-    // FIN METODOS PARA TAREAS
-
-    // METODOS DE HABITACION
-
-    // Método para obtener la lista de habitaciones
+    /**
+     * Obtiene la lista de habitaciones.
+     */
     public ObservableList<Habitacion> obtenerHabitaciones() {
         try {
             List<Habitacion> listaHabitaciones = habitacionDAO.obtenerHabitaciones();
@@ -296,7 +329,9 @@ public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
         return FXCollections.observableArrayList();
     }
 
-    // Método para obtener la lista de habitaciones sin reserva
+    /**
+     * Obtiene la lista de habitaciones disponibles (sin reserva).
+     */
     public ObservableList<String> obtenerHabitacionesSinReserva() {
         ObservableList<String> habitaciones = FXCollections.observableArrayList();
         String sql = "SELECT h.numero_habitacion " +
@@ -316,7 +351,9 @@ public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
         return habitaciones;
     }
 
-    // Método para crear una habitación
+    /**
+     * Crea una nueva habitación.
+     */
     public int crearHabitacion(Habitacion habitacion) {
         try {
             return habitacionDAO.crearHabitacion(habitacion);
@@ -326,7 +363,9 @@ public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
         return -1;
     }
 
-    // Método para actualizar una habitación
+    /**
+     * Actualiza una habitación existente.
+     */
     public boolean actualizarHabitacion(Habitacion habitacion) {
         try {
             habitacionDAO.actualizarHabitacion(habitacion);
@@ -337,7 +376,9 @@ public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
         return false;
     }
 
-    // Método para eliminar una habitación
+    /**
+     * Elimina una habitación.
+     */
     public boolean eliminarHabitacion(int idHabitacion) {
         try {
             habitacionDAO.eliminarHabitacion(idHabitacion);
@@ -348,46 +389,50 @@ public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
         return false;
     }
 
-    // Método para actualizar el estado de una habitación
+    /**
+     * Actualiza el estado de una habitación.
+     */
     public boolean actualizarEstadoHabitacion(int idHabitacion, String nuevoEstado) {
         ReservaDAO reservaDAO = new ReservaDAO(); // Instanciar el DAO
         try {
             reservaDAO.actualizarEstadoHabitacion(idHabitacion, nuevoEstado);
-            return true; // Si la actualización fue exitosa
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
-            return false; // Si hubo un error
+            return false;
         }
     }
 
-    // FIN METODOS PARA HABITACION
+    // ===================== RESERVAS =====================
 
-    // INICIO RESERVAS
-
-    // Método para obtener la lista de reservas
+    /**
+     * Obtiene la lista de reservas.
+     */
     public ObservableList<Reserva> obtenerReservas() {
         try {
-            // Llama al método del DAO para obtener las reservas
-            List<Reserva> listaReservas = reservaDAO.obtenerReservas(); // Asegúrate de que este método incluya el
-                                                                        // atributo 'estado'
+            List<Reserva> listaReservas = reservaDAO.obtenerReservas();
             return FXCollections.observableArrayList(listaReservas);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error al obtener las reservas desde la base de datos", e);
         }
-        return FXCollections.observableArrayList(); // Devuelve una lista vacía en caso de error
+        return FXCollections.observableArrayList();
     }
 
-    
+    /**
+     * Obtiene el próximo ID de reserva disponible.
+     */
     public int obtenerProximoIdReserva() {
         try {
             return reservaDAO.obtenerProximoIdReserva();
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error al obtener el último ID de reserva", e);
         }
-        return 0; // Devuelve 0 si ocurre un error
+        return 0;
     }
 
-    // Método para actualizar una reserva
+    /**
+     * Actualiza una reserva.
+     */
     public boolean actualizarReserva(Reserva reserva) {
         try {
             reservaDAO.actualizarReserva(reserva);
@@ -398,14 +443,18 @@ public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
         return false;
     }
 
-    // Método para actualizar una reserva
+    /**
+     * Actualiza una reserva (simulación).
+     */
     public boolean actualitzarReserva(Reserva reserva) {
         // Lógica para actualizar la reserva en la base de datos
         System.out.println("Reserva actualizada: " + reserva.getId_reserva());
         return true; // Simulación de éxito
     }
 
-    // Método para actualizar el estado de una reserva
+    /**
+     * Actualiza el estado de una reserva.
+     */
     public void actualizarEstadoReserva(int idReserva, String nuevoEstado) throws SQLException {
         String sql = "UPDATE reserva SET estado = ? WHERE id_reserva = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -418,73 +467,91 @@ public LinkedList<Tarea> obtenerTareasPendientesYEnProceso() {
         }
     }
 
-    // Método para eliminar una reserva
+    /**
+     * Elimina una reserva (simulación).
+     */
     public boolean eliminarReserva(int idReserva) {
         // Lógica para eliminar la reserva en la base de datos
         System.out.println("Reserva eliminada: " + idReserva);
         return true; // Simulación de éxito
     }
 
-    // Método para crear una reserva
-
+    /**
+     * Crea una reserva (simulación).
+     */
     public boolean crearReserva(Reserva reserva) {
         // Lógica para insertar la reserva en la base de datos
         System.out.println("Reserva creada: " + reserva.getId_reserva());
         return true; // Simulación de éxito
     }
 
+    /**
+     * Obtiene todos los clientes como lista observable de String.
+     */
     public ObservableList<String> obtenerTodosLosClientes() {
-    List<String> lista = reservaDAO.obtenerClientesConNombre();
-    return FXCollections.observableArrayList(lista);
-}
-
-public double obtenerIvaPorTipoCliente(String tipoCliente) {
-    switch (tipoCliente) {
-        case "Cliente":
-            return 21.0;
-        case "Empleado":
-            return 7.0;
-        case "Ambos":
-            return 10.0;
-        default:
-            return 0.0; // o el valor por defecto que quieras
+        List<String> lista = reservaDAO.obtenerClientesConNombre();
+        return FXCollections.observableArrayList(lista);
     }
-}
 
-    // Método para obtener id_cliente a partir del documento
+    /**
+     * Devuelve el IVA según el tipo de cliente.
+     */
+    public double obtenerIvaPorTipoCliente(String tipoCliente) {
+        switch (tipoCliente) {
+            case "Cliente":
+                return 21.0;
+            case "Empleado":
+                return 7.0;
+            case "Ambos":
+                return 10.0;
+            default:
+                return 0.0;
+        }
+    }
+
+    /**
+     * Obtiene el id_cliente a partir del documento.
+     */
     public int obtenerIdClientePorDocumento(String documento) {
         return reservaDAO.obtenerIdClientePorDocumento(documento);
     }
 
-        // Método para obtener el tipo de cliente por id_cliente
+    /**
+     * Obtiene el tipo de cliente por id_cliente.
+     */
     public String obtenerTipoClientePorId(int idCliente) {
         return reservaDAO.obtenerTipoClientePorId(idCliente);
     }
 
+    /**
+     * Obtiene el id de la habitación a partir de su número.
+     */
     public int obtenerIdHabitacionPorNumero(String numeroHabitacion) {
         ReservaDAO reservaDAO = new ReservaDAO();
         return reservaDAO.obtenerIdHabitacionPorNumero(numeroHabitacion);
     }
 
+    /**
+     * Crea una reserva y devuelve el id generado.
+     */
     public int crearReservaConExito(Reserva reserva) {
         try {
-            // Llama al método existente que devuelve el ID de la reserva creada
             int idReserva = reservaDAO.crearReserva(reserva);
-            return idReserva; // Devuelve el ID de la reserva creada
+            return idReserva;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error al crear la reserva", e);
         }
-        return -1; // Devuelve -1 si ocurre un error
+        return -1;
     }
 
+    /**
+     * Registra una reserva y actualiza el estado de la habitación.
+     */
     public boolean registrarReserva(Reserva reserva) {
         try {
-            // Crear la reserva en la base de datos
             int idReserva = crearReservaConExito(reserva);
             if (idReserva > 0) {
-                // Cambiar el estado de la habitación a "OCUPADA"
                 reservaDAO.actualizarEstadoHabitacion(reserva.getId_habitacion(), "OCUPADA");
-
                 return true;
             }
         } catch (SQLException e) {
@@ -493,12 +560,16 @@ public double obtenerIvaPorTipoCliente(String tipoCliente) {
         return false;
     }
 
-
-
+    /**
+     * Verifica si existe solapamiento de reservas para una habitación y fechas dadas.
+     */
     public boolean existeSolapamientoReserva(int idHabitacion, LocalDate fechaInicio, LocalDate fechaFin) {
         return reservaDAO.existeSolapamientoReserva(idHabitacion, fechaInicio, fechaFin);
     }
 
+    /**
+     * Obtiene habitaciones con la última fecha de reserva.
+     */
     public ObservableList<String> obtenerHabitacionesConUltimaFecha() throws SQLException {
         ObservableList<String> habitacionesConEstado = reservaDAO.obtenerHabitacionesConEstado();
         ObservableList<String> habitacionesConUltimaFecha = FXCollections.observableArrayList();
@@ -514,27 +585,38 @@ public double obtenerIvaPorTipoCliente(String tipoCliente) {
         return habitacionesConUltimaFecha;
     }
 
+    /**
+     * Actualiza el estado de una reserva a "Facturado".
+     * @param idReserva ID de la reserva a actualizar.
+     * @return true si la actualización fue exitosa, false en caso contrario.
+     */
     public boolean actualizarEstadoReservaAFacturada(int idReserva) {
-    return reservaDAO.actualizarEstadoReserva(idReserva, "Facturado");
-}
+        return reservaDAO.actualizarEstadoReserva(idReserva, "Facturado");
+    }
 
-
-
+    /**
+     * Obtiene una lista de días ocupados para una habitación específica.
+     * @param idHabitacion ID de la habitación.
+     * @return Lista de fechas ocupadas.
+     * @throws SQLException si ocurre un error en la consulta.
+     */
     public List<LocalDate> obtenerDiasOcupados(int idHabitacion) throws SQLException {
         return reservaDAO.obtenerDiasOcupados(idHabitacion);
     }
 
+    /**
+     * Obtiene los rangos de fechas reservadas para una habitación.
+     * @param idHabitacion ID de la habitación.
+     * @return Lista de arreglos de fechas (inicio y fin) reservadas.
+     */
     public List<LocalDate[]> obtenerFechasReservadasHabitacion(int idHabitacion) {
-    try {
-        return reservaDAO.obtenerRangosFechasReservadas(idHabitacion);
-    } catch (SQLException e) {
-        e.printStackTrace();
-        return new ArrayList<>();
+        try {
+            return reservaDAO.obtenerRangosFechasReservadas(idHabitacion);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
-}
 
-
-    // FIN RESERVAS
-
-
+    // ===================== FIN RESERVAS =====================
 }

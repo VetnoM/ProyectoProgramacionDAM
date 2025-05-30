@@ -9,34 +9,54 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 
+/**
+ * Controlador para la gestión de habitaciones.
+ * Permite crear, modificar, eliminar y visualizar habitaciones.
+ */
 public class HabitacionController {
+    // Campo de texto para el número de habitación
     @FXML
     private TextField txtNumeroHabitacion;
+    // ComboBox para seleccionar el tipo de habitación
     @FXML
     private ComboBox<TipoHabitacion> comboTipoHabitacion;
+    // Campo de texto para la capacidad de la habitación
     @FXML
     private TextField txtCapacidad;
+    // ComboBox para seleccionar el estado de la habitación
     @FXML
     private ComboBox<EstadoHabitacion> comboEstado;
+    // Área de texto para la descripción de la habitación
     @FXML
     private TextArea txtDescripcion;
+    // Campo de texto para el precio por noche en alojamiento y desayuno
     @FXML
     private TextField txtPrecioNocheAD;
+    // Campo de texto para el precio por noche en media pensión
     @FXML
     private TextField txtPrecioNocheMP;
+    // ListView para mostrar la lista de habitaciones
     @FXML
     private ListView<Habitacion> listHabitaciones;
+    // Botón para crear una nueva habitación
     @FXML
     private Button btnCrear;
+    // Botón para guardar cambios en una habitación existente
     @FXML
     private Button btnGuardarCambios;
+    // Botón para eliminar una habitación
     @FXML
     private Button btnEliminar;
+    // Botón para limpiar los campos del formulario
     @FXML
     private Button btnLimpiar;
 
+    // Instancia del modelo para acceder a la lógica de negocio y datos
     private Modelo modelo = new Modelo();
 
+    /**
+     * Inicializa la vista, configurando los ComboBox, ListView y listeners.
+     */
     @FXML
     public void initialize() {
         comboTipoHabitacion.getItems().setAll(TipoHabitacion.values());
@@ -55,7 +75,9 @@ public class HabitacionController {
         agregarListenersDeEscritura();
     }
 
-    // Método para cargar las habitaciones en la lista
+    /**
+     * Carga las habitaciones en el ListView.
+     */
     private void cargarHabitacionesEnLista() {
         ObservableList<Habitacion> habitaciones = modelo.obtenerHabitaciones();
         listHabitaciones.setItems(habitaciones);
@@ -68,15 +90,16 @@ public class HabitacionController {
                     setText(null);
                 } else {
                     // Mostrar el estado directamente desde el campo "estado"
-                    String estadoTexto = habitacion.getEstado().toString(); // Convertir el estado a texto
+                    String estadoTexto = habitacion.getEstado().toString();
                     setText("Habitación " + habitacion.getNumero_habitacion() + " - " + habitacion.getTipo() + " (" + estadoTexto + ")");
                 }
             }
         });
     }
-    
 
-    // Método para mostrar los detalles de la habitación seleccionada
+    /**
+     * Muestra los detalles de la habitación seleccionada en los campos del formulario.
+     */
     private void mostrarDetallesHabitacion(Habitacion habitacion) {
         if (habitacion != null) {
             txtNumeroHabitacion.setText(habitacion.getNumero_habitacion());
@@ -91,15 +114,19 @@ public class HabitacionController {
         }
     }
 
-    // Método para limpiar los campos y restablecer el formulario
+    /**
+     * Limpia los campos y restablece el formulario.
+     */
     @FXML
     private void limpiarCamposAction() {
-        limpiarCampos(); // Llama al método existente para limpiar los campos
-        listHabitaciones.getSelectionModel().clearSelection(); // Deselecciona cualquier elemento del ListView
-        alternarBotones(true); // Vuelve a mostrar el botón "Crear"
+        limpiarCampos();
+        listHabitaciones.getSelectionModel().clearSelection();
+        alternarBotones(true);
     }
 
-    // Método para limpiar los campos
+    /**
+     * Limpia todos los campos del formulario.
+     */
     private void limpiarCampos() {
         txtNumeroHabitacion.clear();
         comboTipoHabitacion.setValue(null);
@@ -110,14 +137,19 @@ public class HabitacionController {
         txtPrecioNocheMP.clear();
     }
 
-    // Método para alternar la visibilidad de los botones
+    /**
+     * Alterna la visibilidad de los botones según el contexto.
+     * @param mostrarCrear true para mostrar "Crear", false para mostrar "Guardar Cambios" y "Eliminar"
+     */
     private void alternarBotones(boolean mostrarCrear) {
         btnCrear.setVisible(mostrarCrear);
         btnGuardarCambios.setVisible(!mostrarCrear);
-        btnEliminar.setVisible(!mostrarCrear); // Mostrar "Eliminar" solo cuando no se está creando
+        btnEliminar.setVisible(!mostrarCrear);
     }
 
-    // Agregar listeners para detectar escritura en los campos
+    /**
+     * Agrega listeners para detectar escritura en los campos y alternar botones.
+     */
     private void agregarListenersDeEscritura() {
         txtNumeroHabitacion.setOnKeyTyped(this::manejarEscritura);
         txtCapacidad.setOnKeyTyped(this::manejarEscritura);
@@ -126,14 +158,18 @@ public class HabitacionController {
         txtPrecioNocheMP.setOnKeyTyped(this::manejarEscritura);
     }
 
-    // Manejar escritura en los campos
+    /**
+     * Maneja la escritura en los campos para alternar los botones.
+     */
     private void manejarEscritura(KeyEvent event) {
         if (listHabitaciones.getSelectionModel().getSelectedItem() == null) {
-            alternarBotones(true); // Mostrar "Crear", ocultar "Guardar Cambios" y "Eliminar"
+            alternarBotones(true);
         }
     }
 
-    // Método para crear una habitación
+    /**
+     * Crea una nueva habitación a partir de los datos del formulario.
+     */
     @FXML
     private void crearHabitacion() {
         try {
@@ -145,15 +181,14 @@ public class HabitacionController {
             double precioNocheAD = Double.parseDouble(txtPrecioNocheAD.getText());
             double precioNocheMP = Double.parseDouble(txtPrecioNocheMP.getText());
     
-            // Crear la habitación con el estado seleccionado
             Habitacion habitacion = new Habitacion(0, numeroHabitacion, tipoHabitacion, capacidad, estado, descripcion, precioNocheAD, precioNocheMP);
             int idHabitacion = modelo.crearHabitacion(habitacion);
     
             if (idHabitacion > 0) {
                 mostrarAlertaInformacion("Éxito", "Habitación creada correctamente.");
-                cargarHabitacionesEnLista(); // Actualizar la lista de habitaciones
+                cargarHabitacionesEnLista();
                 limpiarCampos();
-                alternarBotones(false); // Volver a estado inicial
+                alternarBotones(false);
             } else {
                 mostrarAlertaError("Error", "No se pudo crear la habitación.");
             }
@@ -161,7 +196,10 @@ public class HabitacionController {
             mostrarAlertaError("Error", "Por favor, ingresa valores válidos en los campos.");
         }
     }
-    // Método para guardar cambios en una habitación
+
+    /**
+     * Guarda los cambios realizados en una habitación seleccionada.
+     */
     @FXML
     private void guardarCambios() {
         Habitacion habitacionSeleccionada = listHabitaciones.getSelectionModel().getSelectedItem();
@@ -179,7 +217,6 @@ public class HabitacionController {
             double precioNocheAD = Double.parseDouble(txtPrecioNocheAD.getText());
             double precioNocheMP = Double.parseDouble(txtPrecioNocheMP.getText());
     
-            // Actualizar la habitación seleccionada
             Habitacion habitacionActualizada = new Habitacion(
                 habitacionSeleccionada.getId_habitacion(),
                 numeroHabitacion,
@@ -195,9 +232,9 @@ public class HabitacionController {
     
             if (actualizada) {
                 mostrarAlertaInformacion("Éxito", "Habitación actualizada correctamente.");
-                cargarHabitacionesEnLista(); // Actualiza el ListView
-                limpiarCampos(); // Limpia los campos después de guardar
-                alternarBotones(true); // Vuelve a mostrar el botón "Crear"
+                cargarHabitacionesEnLista();
+                limpiarCampos();
+                alternarBotones(true);
             } else {
                 mostrarAlertaError("Error", "No se pudo actualizar la habitación.");
             }
@@ -206,7 +243,9 @@ public class HabitacionController {
         }
     }
 
-    // Método para eliminar una habitación
+    /**
+     * Elimina la habitación seleccionada tras confirmación del usuario.
+     */
     @FXML
     private void eliminarHabitacion() {
         Habitacion habitacionSeleccionada = listHabitaciones.getSelectionModel().getSelectedItem();
@@ -226,16 +265,18 @@ public class HabitacionController {
 
             if (eliminada) {
                 mostrarAlertaInformacion("Éxito", "Habitación eliminada correctamente.");
-                cargarHabitacionesEnLista(); // Actualizar la lista de habitaciones
+                cargarHabitacionesEnLista();
                 limpiarCampos();
-                alternarBotones(false); // Volver a estado inicial
+                alternarBotones(false);
             } else {
                 mostrarAlertaError("Error", "No se pudo eliminar la habitación.");
             }
         }
     }
 
-    // Método para mostrar alerta de información
+    /**
+     * Muestra una alerta de información.
+     */
     public static void mostrarAlertaInformacion(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
         alerta.setTitle(titulo);
@@ -244,7 +285,9 @@ public class HabitacionController {
         alerta.showAndWait();
     }
 
-    // Método para mostrar alerta de error
+    /**
+     * Muestra una alerta de error.
+     */
     public static void mostrarAlertaError(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.ERROR);
         alerta.setTitle(titulo);

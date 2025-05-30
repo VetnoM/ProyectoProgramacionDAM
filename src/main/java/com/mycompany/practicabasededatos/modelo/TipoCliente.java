@@ -1,8 +1,8 @@
 package com.mycompany.practicabasededatos.modelo;
 
 /**
- *
- * @author eric_
+ * Enum que representa los tipos de cliente posibles en el sistema.
+ * Puede ser REGULAR o VIP.
  */
 public enum TipoCliente {
     REGULAR,

@@ -8,9 +8,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase HabitacionDAO encargada de gestionar todas las operaciones
+ * de acceso y manipulación de datos para la tabla 'habitacion'
+ * en la base de datos. Permite obtener, crear, actualizar y eliminar habitaciones.
+ */
 public class HabitacionDAO {
 
-    // Método para obtener una habitación por su ID
+    // Busca una habitación en la base de datos por su ID
     public Habitacion obtenerHabitacionPorId(int id) {
         Habitacion habitacion = null;
         String consulta = "SELECT * FROM habitacion WHERE id_habitacion = ?";
@@ -22,6 +27,7 @@ public class HabitacionDAO {
             try (ResultSet rs = stmt.executeQuery()) {
 
                 if (rs.next()) {
+                    // Lee todos los campos para construir el objeto Habitacion
                     int id_habitacion = rs.getInt("id_habitacion");
                     String numero_habitacion = rs.getString("numero_habitacion");
                     TipoHabitacion tipo = TipoHabitacion.valueOf(rs.getString("tipo").toUpperCase());
@@ -36,22 +42,25 @@ public class HabitacionDAO {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Error al obtener habitación por ID: " + e.getMessage());
         } catch (IllegalArgumentException e) {
-            // Esto se lanza si el estado o tipo en la base de datos no coincide con los valores del enum
+            // Si el valor en BD no coincide con los valores de los enums
             System.out.println("Error: EstadoHabitacion o TipoHabitacion no válido en la base de datos.");
         }
 
         return habitacion;
     }
 
-    // Método para obtener todas las habitaciones
+    // Obtiene todas las habitaciones almacenadas en la base de datos
     public List<Habitacion> obtenerHabitaciones() throws SQLException {
         List<Habitacion> habitaciones = new ArrayList<>();
         String sql = "SELECT * FROM habitacion";
+
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
+
+            // Construye una lista con todas las habitaciones encontradas
             while (rs.next()) {
                 Habitacion habitacion = new Habitacion(
                         rs.getInt("id_habitacion"),
@@ -69,12 +78,15 @@ public class HabitacionDAO {
         return habitaciones;
     }
 
-    // Método para agregar una habitación
+    // Inserta una nueva habitación en la base de datos y devuelve su ID generado
     public int crearHabitacion(Habitacion habitacion) throws SQLException {
         String sql = "INSERT INTO habitacion (numero_habitacion, tipo, capacidad, estado, descripcion, precio_noche_ad, precio_noche_mp) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            // Asignación de valores a la consulta
             stmt.setString(1, habitacion.getNumero_habitacion());
             stmt.setString(2, habitacion.getTipo().name());
             stmt.setInt(3, habitacion.getCapacidad());
@@ -82,12 +94,13 @@ public class HabitacionDAO {
             stmt.setString(5, habitacion.getDescripcion());
             stmt.setDouble(6, habitacion.getPrecio_noche_ad());
             stmt.setDouble(7, habitacion.getPrecio_noche_mp());
-    
+
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
                 throw new SQLException("No se pudo crear la habitación. Ninguna fila fue afectada.");
             }
-    
+
+            // Obtener el ID generado automáticamente tras la inserción
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getInt(1);
@@ -98,12 +111,15 @@ public class HabitacionDAO {
         }
     }
 
-    // Método para actualizar una habitación
+    // Actualiza los datos de una habitación existente
     public void actualizarHabitacion(Habitacion habitacion) throws SQLException {
         String sql = "UPDATE habitacion SET numero_habitacion = ?, tipo = ?, capacidad = ?, estado = ?, descripcion = ?, precio_noche_ad = ?, precio_noche_mp = ? " +
                      "WHERE id_habitacion = ?";
+
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // Asignar nuevos valores para actualizar
             stmt.setString(1, habitacion.getNumero_habitacion());
             stmt.setString(2, habitacion.getTipo().name());
             stmt.setInt(3, habitacion.getCapacidad());
@@ -112,7 +128,7 @@ public class HabitacionDAO {
             stmt.setDouble(6, habitacion.getPrecio_noche_ad());
             stmt.setDouble(7, habitacion.getPrecio_noche_mp());
             stmt.setInt(8, habitacion.getId_habitacion());
-    
+
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
                 throw new SQLException("No se pudo actualizar la habitación. Ninguna fila fue afectada.");
@@ -120,11 +136,13 @@ public class HabitacionDAO {
         }
     }
 
-    // Método para eliminar una habitación
+    // Elimina una habitación por su ID
     public void eliminarHabitacion(int idHabitacion) throws SQLException {
         String sql = "DELETE FROM habitacion WHERE id_habitacion = ?";
+
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, idHabitacion);
             stmt.executeUpdate();
         }

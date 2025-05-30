@@ -11,58 +11,65 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 
 /**
- * FXML Controller class
- *
- * @author eric_
+ * Controlador para la pantalla de bienvenida.
+ * Permite cambiar entre diferentes vistas (personas, tareas, habitaciones, reservas, servicios).
  */
 public class BienvenidaController  {
 
+    // Panel central donde se cargan las diferentes vistas
     @FXML
     AnchorPane anchorPaneCentre;
+    // Panel principal (puede usarse para otras funcionalidades)
     @FXML
     AnchorPane anchorPanePrincipal;
     
-    // cambiar a personas
-      @FXML
+    // Cambia la vista al formulario de alta de personas
+    @FXML
     private void cambiarAltaPersonas() throws IOException {
         switchFxml("primary.fxml");
     }
 
-    //cambiar a modificar datos de personas
+    // Cambia la vista al formulario de modificación de personas
     @FXML
     private void cambiarModificarPersonas() throws IOException {
         switchFxml("modificarUsuario.fxml");
     }
     
-    
-// tareas
+    // Cambia la vista al formulario de creación de tareas
     @FXML
     private void cambiarCrearTarea() throws IOException {
         switchFxml("crearTarea.fxml");
     }
+
+    // Cambia la vista al formulario de asignación de tareas
     @FXML
     private void cambiarAsignarTarea() throws IOException {
         switchFxml("asignarTarea.fxml");
     }
     
-    // habitacion
-    
-      @FXML
+    // Cambia la vista al formulario de gestión de habitaciones
+    @FXML
     private void cambiarHabitacion() throws IOException {
         switchFxml("habitacion.fxml");
     }
 
-    //cambiar a reserva
+    // Cambia la vista al formulario de gestión de reservas
     @FXML
     private void cambiarReservas() throws IOException {
         switchFxml("reserva.fxml");
     }
 
+    // Cambia la vista al formulario de servicios
     @FXML
     private void cambiarServicios() throws IOException{
         switchFxml("servicios.fxml");
     }
     
+    /**
+     * Método auxiliar para cambiar el contenido del panel central por el FXML indicado.
+     * @param nomFxml nombre del archivo FXML a cargar
+     * @throws IOException si ocurre un error al cargar el FXML
+     */
     @FXML
     private void switchFxml(String nomFxml) throws IOException {
         anchorPaneCentre.getChildren().clear();
@@ -71,6 +78,4 @@ public class BienvenidaController  {
 
         anchorPaneCentre.getChildren().add(vistaAcarregar);
     }
-    
-    
 }

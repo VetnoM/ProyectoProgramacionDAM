@@ -5,9 +5,15 @@
 package com.mycompany.practicabasededatos.modelo;
 
 /**
+ * Enum que representa los tipos de reserva posibles en el sistema.
+ * SIN_RESERVA: Sin régimen de comidas.
+ * AD: Alojamiento y desayuno.
+ * MP: Media pensión.
  *
  * @author eric_
  */
 public enum TipoReserva {
-    SIN_RESERVA,AD,MP;
+    SIN_RESERVA, // Sin régimen de comidas
+    AD,          // Alojamiento y desayuno
+    MP           // Media pensión
 }

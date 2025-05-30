@@ -8,151 +8,170 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase DAO (Data Access Object) encargada de manejar todas las operaciones relacionadas
+ * con la tabla 'empleado' en la base de datos.
+ */
 public class EmpleadoDAO {
 
-    // Método para insertar un empleado
+    /**
+     * Inserta un nuevo empleado en la base de datos.
+     * @param idPersona ID de la persona asociada al empleado.
+     * @param empleado Objeto Empleado con los datos a insertar.
+     * @throws SQLException Si ocurre un error al ejecutar la consulta.
+     */
     public void insertarEmpleado(int idPersona, Empleado empleado) throws SQLException {
-        // Consulta SQL para insertar un nuevo empleado en la tabla 'empleado'
         String sql = "INSERT INTO empleado (id_persona, lugar_trabajo, salario, estado_laboral, fecha_contratacion) VALUES (?, ?, ?, ?, ?)";
 
-        // Establece una conexión con la base de datos y prepara la consulta SQL
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Asigna los valores a los parámetros de la consulta SQL
             stmt.setInt(1, idPersona);
             stmt.setString(2, empleado.getLugar_trabajo());
             stmt.setDouble(3, empleado.getSalario_bruto());
             stmt.setString(4, empleado.getEstadolaboral().name());
             stmt.setDate(5, new java.sql.Date(empleado.getFecha_contratacion().getTime()));
 
-            // Ejecuta la consulta SQL
             stmt.executeUpdate();
         }
     }
 
-public List<Empleado> obtenerEmpleados() throws SQLException {
-    List<Empleado> empleados = new ArrayList<>();
+    /**
+     * Obtiene una lista con todos los empleados junto con los datos personales asociados.
+     * @return Lista de objetos Empleado.
+     * @throws SQLException Si ocurre un error durante la consulta.
+     */
+    public List<Empleado> obtenerEmpleados() throws SQLException {
+        List<Empleado> empleados = new ArrayList<>();
 
-    String sql = 
-       " SELECT e.id_empleado, e.lugar_trabajo, e.salario, e.estado_laboral, e.fecha_contratacion, "+
-              " p.id_persona, p.documento, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.direccion "+
-        "FROM empleado e "+
-        "JOIN persona p ON e.id_persona = p.id_persona"
-    ;
+        String sql = 
+           "SELECT e.id_empleado, e.lugar_trabajo, e.salario, e.estado_laboral, e.fecha_contratacion, "+
+                  "p.id_persona, p.documento, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.direccion "+
+           "FROM empleado e "+
+           "JOIN persona p ON e.id_persona = p.id_persona";
 
-    try (Connection con = DatabaseConnection.getConnection();
-         PreparedStatement stmt = con.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
-        while (rs.next()) {
-            Empleado e = new Empleado();
-            e.setId_empleado(rs.getInt("id_empleado"));
-            e.setLugar_trabajo(rs.getString("lugar_trabajo"));
-            e.setSalario_bruto(rs.getDouble("salario"));
-            e.setEstadolaboral(EstadoLaboral.valueOf(rs.getString("estado_laboral")));
-            e.setFecha_contratacion(rs.getDate("fecha_contratacion"));
+            while (rs.next()) {
+                Empleado e = new Empleado();
+                e.setId_empleado(rs.getInt("id_empleado"));
+                e.setLugar_trabajo(rs.getString("lugar_trabajo"));
+                e.setSalario_bruto(rs.getDouble("salario"));
+                e.setEstadolaboral(EstadoLaboral.valueOf(rs.getString("estado_laboral")));
+                e.setFecha_contratacion(rs.getDate("fecha_contratacion"));
 
-            // Datos de la persona heredados
-            e.setId_persona(rs.getInt("id_persona"));
-            e.setDocumento_identidad(rs.getString("documento"));
-            e.setNombre(rs.getString("nombre"));
-            e.setApellido(rs.getString("apellido"));
-            e.setFecha_nacimiento(rs.getDate("fecha_nacimiento"));
-            e.setTelefono(rs.getString("telefono"));
-            e.setEmail(rs.getString("email"));
-            e.setDireccion(rs.getString("direccion"));
+                // Datos heredados de la tabla persona
+                e.setId_persona(rs.getInt("id_persona"));
+                e.setDocumento_identidad(rs.getString("documento"));
+                e.setNombre(rs.getString("nombre"));
+                e.setApellido(rs.getString("apellido"));
+                e.setFecha_nacimiento(rs.getDate("fecha_nacimiento"));
+                e.setTelefono(rs.getString("telefono"));
+                e.setEmail(rs.getString("email"));
+                e.setDireccion(rs.getString("direccion"));
 
-            empleados.add(e);
-        }
-    }
-
-    return empleados;
-}
-
-    // Método para obtener el ID de un empleado por su documento
-    public int obtenerIdEmpleadoPorDocumento(Connection conn, String documento) throws SQLException {
-        // Consulta SQL para obtener el ID del empleado por su documento
-        String query = "SELECT empleado.id_empleado FROM empleados e " +
-                       "JOIN personas p ON e.idPersona = p.idPersona " +
-                       "WHERE p.documento = ?";
-        
-        // Prepara la consulta SQL
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            // Asigna el valor del documento al parámetro de la consulta SQL
-            stmt.setString(1, documento);
-            // Ejecuta la consulta SQL
-            ResultSet rs = stmt.executeQuery();
-            // Si se encuentra el empleado, devuelve su ID
-            if (rs.next()) {
-                return rs.getInt("id_empleado"); // Devuelve el id_empleado
+                empleados.add(e);
             }
         }
-        // Si no se encuentra, devuelve -1
+
+        return empleados;
+    }
+
+    /**
+     * Devuelve el ID de un empleado a partir del documento de identidad.
+     * @param conn Conexión ya establecida a la base de datos.
+     * @param documento Documento de identidad de la persona.
+     * @return ID del empleado si se encuentra, -1 si no existe.
+     * @throws SQLException Si ocurre un error en la consulta.
+     */
+    public int obtenerIdEmpleadoPorDocumento(Connection conn, String documento) throws SQLException {
+        // ⚠️ ERROR: Nombres de tabla incorrectos (deberían ser 'empleado' y 'persona')
+        String query = "SELECT empleado.id_empleado FROM empleado e " +
+                       "JOIN personas p ON e.idPersona = p.idPersona " +
+                       "WHERE p.documento = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, documento);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_empleado");
+            }
+        }
         return -1;
     }
 
-    // Método para actualizar un empleado
+    /**
+     * Actualiza los datos de un empleado en la base de datos.
+     * @param empleado Objeto Empleado con los datos modificados.
+     * @throws SQLException Si ocurre un error al ejecutar la consulta.
+     */
     public void actualizarEmpleado(Empleado empleado) throws SQLException {
-        // Consulta SQL para actualizar un empleado en la tabla 'empleado'
         String sql = "UPDATE empleado SET lugar_trabajo = ?, salario = ?, estado_laboral = ?, fecha_contratacion = ? WHERE id_empleado = ?";
 
-        // Establece una conexión con la base de datos y prepara la consulta SQL
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Asigna los valores a los parámetros de la consulta SQL
             stmt.setString(1, empleado.getLugar_trabajo());
             stmt.setDouble(2, empleado.getSalario_bruto());
             stmt.setString(3, empleado.getEstadolaboral().name());
             stmt.setDate(4, new java.sql.Date(empleado.getFecha_contratacion().getTime()));
             stmt.setInt(5, empleado.getId_empleado());
 
-            // Ejecuta la consulta SQL
             stmt.executeUpdate();
         }
     }
 
-    // Método para eliminar un empleado por su ID
+    /**
+     * Elimina un empleado de la base de datos por su ID.
+     * @param idEmpleado ID del empleado a eliminar.
+     * @throws SQLException Si ocurre un error en la consulta.
+     */
     public void eliminarEmpleado(int idEmpleado) throws SQLException {
-        // Consulta SQL para eliminar un empleado de la tabla 'empleado' por su ID
         String sql = "DELETE FROM empleado WHERE id_empleado = ?";
 
-        // Establece una conexión con la base de datos y prepara la consulta SQL
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Asigna el valor del ID del empleado al parámetro de la consulta SQL
             stmt.setInt(1, idEmpleado);
-            // Ejecuta la consulta SQL
             stmt.executeUpdate();
         }
     }
 
-      // Método para obtener un empleado por ID de persona
+    /**
+     * Obtiene un empleado a partir de su ID de persona.
+     * @param idPersona ID de la persona asociada.
+     * @return Objeto Empleado si se encuentra, null si no existe.
+     */
     public Empleado obtenerEmpleadoPorIdPersona(int idPersona) {
-    String sql = "SELECT * FROM empleado WHERE id_persona = ?";
-    try (Connection conn = DatabaseConnection.getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        stmt.setInt(1, idPersona);
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            // Obtener datos de persona
-            PersonaDAO personaDAO = new PersonaDAO();
-            Persona persona = personaDAO.obtenerPersonaPorDocumento(rs.getString("documento"));
+        String sql = "SELECT * FROM empleado WHERE id_persona = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // Convertir Strings a Enums
-            EstadoLaboral estadoLaboral = EstadoLaboral.valueOf(rs.getString("estado_laboral").toUpperCase());
+            stmt.setInt(1, idPersona);
+            ResultSet rs = stmt.executeQuery();
 
-            return new Empleado(persona.getId_persona(), persona.getDocumento_identidad(), persona.getDireccion(),
-                                persona.getEmail(), rs.getDouble("salario_bruto"), 
-                                rs.getString("lugar_trabajo"), estadoLaboral);
+            if (rs.next()) {
+                // ⚠️ POSIBLE ERROR: Aquí se intenta obtener el documento pero no se hace un JOIN con 'persona'.
+                PersonaDAO personaDAO = new PersonaDAO();
+                Persona persona = personaDAO.obtenerPersonaPorDocumento(rs.getString("documento"));
+
+                EstadoLaboral estadoLaboral = EstadoLaboral.valueOf(rs.getString("estado_laboral").toUpperCase());
+
+                return new Empleado(
+                    persona.getId_persona(),
+                    persona.getDocumento_identidad(),
+                    persona.getDireccion(),
+                    persona.getEmail(),
+                    rs.getDouble("salario_bruto"),  // ⚠️ Posible error: el campo en la tabla es "salario"
+                    rs.getString("lugar_trabajo"),
+                    estadoLaboral
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return null;
     }
-    return null;
-}
-
-
 }
