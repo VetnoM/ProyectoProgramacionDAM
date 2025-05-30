@@ -134,48 +134,48 @@ public class ReservaController {
             // Validar selección de habitación
             String habitacionSeleccionada = listHabitacionesSinReserva.getSelectionModel().getSelectedItem();
             if (habitacionSeleccionada == null) {
-                mostrarAlertaError("Error", "Por favor, selecciona una habitación.");
+                 mostrarError("Error", "Por favor, selecciona una habitación.");
                 return;
             }
             String numeroHabitacion = habitacionSeleccionada.split(" ")[0];
             int idHabitacion = modelo.obtenerIdHabitacionPorNumero(numeroHabitacion);
             if (idHabitacion == -1) {
-                mostrarAlertaError("Error", "No se encontró la habitación en la base de datos.");
+                 mostrarError("Error", "No se encontró la habitación en la base de datos.");
                 return;
             }
 
             // Validar selección de persona
             String personaSeleccionada = listPersonas.getSelectionModel().getSelectedItem();
             if (personaSeleccionada == null) {
-                mostrarAlertaError("Error", "Por favor, selecciona una persona.");
+                 mostrarError("Error", "Por favor, selecciona una persona.");
                 return;
             }
             String documentoIdentidad = personaSeleccionada.split(" - ")[0];
             if (documentoIdentidad.isEmpty()) {
-                mostrarAlertaError("Error", "No se pudo obtener el documento de identidad del cliente.");
+                 mostrarError("Error", "No se pudo obtener el documento de identidad del cliente.");
                 return;
             }
             int idCliente = modelo.obtenerIdClientePorDocumento(documentoIdentidad);
             if (idCliente == -1) {
-                mostrarAlertaError("Error", "No se encontró el cliente en la base de datos.");
+                 mostrarError("Error", "No se encontró el cliente en la base de datos.");
                 return;
             }
 
             // Validar tipo de reserva
             String tipoReserva = comboTipoReserva.getValue();
             if (tipoReserva == null || tipoReserva.isEmpty()) {
-                mostrarAlertaError("Error", "Por favor, selecciona un tipo de reserva.");
+                 mostrarError("Error", "Por favor, selecciona un tipo de reserva.");
                 return;
             }
 
             // Validar fechas
             if (dateFechaInicio.getValue() == null || dateFechaFin.getValue() == null
                     || dateFechaReserva.getValue() == null) {
-                mostrarAlertaError("Error", "Por favor, selecciona todas las fechas.");
+                 mostrarError("Error", "Por favor, selecciona todas las fechas.");
                 return;
             }
             if (dateFechaInicio.getValue().isAfter(dateFechaFin.getValue())) {
-                mostrarAlertaError("Error", "La fecha de inicio no puede ser posterior a la fecha de fin.");
+                 mostrarError("Error", "La fecha de inicio no puede ser posterior a la fecha de fin.");
                 return;
             }
 
@@ -183,7 +183,7 @@ public class ReservaController {
             LocalDate fechaInicio = dateFechaInicio.getValue();
             LocalDate fechaFin = dateFechaFin.getValue();
             if (modelo.existeSolapamientoReserva(idHabitacion, fechaInicio, fechaFin)) {
-                mostrarAlertaError("Error", "La habitación ya está reservada durante ese período.");
+                 mostrarError("Error", "La habitación ya está reservada durante ese período.");
                 return;
             }
 
@@ -212,11 +212,11 @@ public class ReservaController {
                 cargarReservasEnLista();
                 cargarHabitacionesSinReserva();
             } else {
-                mostrarAlertaError("Error", "No se pudo crear la reserva.");
+                 mostrarError("Error", "No se pudo crear la reserva.");
             }
 
         } catch (Exception e) {
-            mostrarAlertaError("Error", "Ocurrió un error al crear la reserva: " + e.getMessage());
+             mostrarError("Error", "Ocurrió un error al crear la reserva: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -273,7 +273,7 @@ public class ReservaController {
             ObservableList<String> habitaciones = modelo.obtenerHabitacionesConUltimaFecha();
             listHabitacionesSinReserva.setItems(habitaciones);
         } catch (Exception e) {
-            mostrarAlertaError("Error", "No se pudieron cargar las habitaciones: " + e.getMessage());
+             mostrarError("Error", "No se pudieron cargar las habitaciones: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -299,7 +299,7 @@ public class ReservaController {
 
             Reserva reservaSeleccionada = listReservas.getSelectionModel().getSelectedItem();
             if (reservaSeleccionada == null) {
-                mostrarAlertaError("Error", "Por favor, selecciona una reserva para facturar.");
+                 mostrarError("Error", "Por favor, selecciona una reserva para facturar.");
                 return;
             }
 
@@ -307,7 +307,7 @@ public class ReservaController {
             String tipoCliente = modelo.obtenerTipoClientePorId(reservaSeleccionada.getId_cliente());
             double iva;
             if (tipoCliente == null) {
-                mostrarAlertaError("Error", "No se pudo obtener el tipo de cliente.");
+                 mostrarError("Error", "No se pudo obtener el tipo de cliente.");
                 return;
             }
 
@@ -322,7 +322,7 @@ public class ReservaController {
                     iva = 10.0;
                     break;
                 default:
-                    mostrarAlertaError("Error", "No se pudo determinar el tipo de cliente.");
+                     mostrarError("Error", "No se pudo determinar el tipo de cliente.");
                     return;
             }
 
@@ -344,12 +344,12 @@ public class ReservaController {
             }
 
         } catch (IOException e) {
-            mostrarAlertaError("Error", "No se pudo abrir la ventana de facturación: " + e.getMessage());
+             mostrarError("Error", "No se pudo abrir la ventana de facturación: " + e.getMessage());
             e.printStackTrace();
         }
         Reserva seleccionada = listReservas.getSelectionModel().getSelectedItem();
         if (seleccionada != null && "Facturado".equalsIgnoreCase(seleccionada.getEstado())) {
-            mostrarAlertaError("Error", "Esta reserva ya fue facturada.");
+             mostrarError("Error", "Esta reserva ya fue facturada.");
             return;
         }
     }
@@ -390,6 +390,29 @@ public class ReservaController {
         dateFechaReserva.setDayCellFactory(dayCellFactory);
     }
 
+    /**
+     * Elimina la reserva seleccionada si está facturada.
+     */
+@FXML
+private void eliminarReservaFacturada() {
+    Reserva reservaSeleccionada = listReservas.getSelectionModel().getSelectedItem();
+    if (reservaSeleccionada == null) {
+         mostrarError("Error", "Selecciona una reserva para eliminar.");
+        return;
+    }
+
+    boolean confirmacion = mostrarConfirmacion("Confirmar", "¿Estás seguro de eliminar esta reserva facturada?");
+    if (!confirmacion) return;
+
+    boolean eliminada = modelo.eliminarReservaFacturada(reservaSeleccionada.getId_reserva());
+    if (eliminada) {
+        mostrarAlerta("Éxito", "Reserva eliminada correctamente.");
+        cargarReservasEnLista(); // Método que recargue la lista
+    } else {
+        mostrarAlerta("Error", "No se pudo eliminar. La reserva no está facturada o ocurrió un error.");
+    }
+}
+
     // Métodos para mostrar alertas
 
     /**
@@ -406,11 +429,28 @@ public class ReservaController {
     /**
      * Muestra una alerta de error.
      */
-    public static void mostrarAlertaError(String titulo, String mensaje) {
+    public static void  mostrarError(String titulo, String mensaje) {
         Alert alerta = new Alert(Alert.AlertType.ERROR);
         alerta.setTitle(titulo);
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
         alerta.showAndWait();
     }
+
+    private void mostrarAlerta(String titulo, String mensaje) {
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle(titulo);
+    alert.setHeaderText(null);
+    alert.setContentText(mensaje);
+    alert.showAndWait();
+}
+
+private boolean mostrarConfirmacion(String titulo, String mensaje) {
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    alert.setTitle(titulo);
+    alert.setHeaderText(null);
+    alert.setContentText(mensaje);
+    return alert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+}
+
 }

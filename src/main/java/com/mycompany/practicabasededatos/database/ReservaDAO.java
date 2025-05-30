@@ -392,4 +392,27 @@ public boolean actualizarEstadoReserva(int idReserva, String nuevoEstado) {
     }
 }
 
+public boolean eliminarReservaSiEstaFacturada(int idReserva) {
+    String sql = 
+        "DELETE FROM reserva "+ 
+        "WHERE id_reserva = ? "+
+        "AND EXISTS ( "+
+            "SELECT 1 FROM factura WHERE factura.id_reserva = reserva.id_reserva"+
+        ");"
+        ;
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setInt(1, idReserva);
+        int filasAfectadas = stmt.executeUpdate();
+        return filasAfectadas > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+
+
 }

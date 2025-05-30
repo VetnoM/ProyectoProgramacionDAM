@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="com.mycompany.practicabasededatos.ModificarUsuarioController">
+<AnchorPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.practicabasededatos.ModificarUsuarioController">
     <children>
         <VBox alignment="TOP_CENTER" spacing="10">
             <children>
@@ -20,7 +20,7 @@
                 <HBox spacing="10">
                     <Label text="Documento:" />
                     <TextField fx:id="txtDocumento" promptText="Ingrese el documento" />
-                    <Button onAction="#buscarUsuario" text="Buscar" />
+                    <Button onAction="#buscarUsuariosPorDocumento" text="Buscar" />
                 </HBox>
 
                 <ListView fx:id="listViewUsuarios" onMouseClicked="#buscarUsuario" prefHeight="100" />

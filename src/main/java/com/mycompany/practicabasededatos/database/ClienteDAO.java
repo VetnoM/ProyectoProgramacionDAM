@@ -1,7 +1,6 @@
 package com.mycompany.practicabasededatos.database;
 
 import com.mycompany.practicabasededatos.modelo.Cliente;
-import com.mycompany.practicabasededatos.modelo.Persona;
 import com.mycompany.practicabasededatos.modelo.TipoCliente;
 
 import java.sql.*;
@@ -41,10 +40,13 @@ public class ClienteDAO {
      */
     public List<Cliente> obtenerClientes() throws SQLException {
         List<Cliente> clientes = new ArrayList<>();
-        String sql = "SELECT * FROM cliente";
+        // Hacemos JOIN con persona para obtener todos los datos
+        String sql = "SELECT c.*, p.documento, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.direccion " +
+                     "FROM cliente c " +
+                     "JOIN persona p ON c.id_persona = p.id_persona";
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 Cliente cliente = new Cliente();
@@ -129,20 +131,30 @@ public class ClienteDAO {
      * @return Objeto Cliente completo o null si no se encuentra.
      */
     public Cliente obtenerClientePorIdPersona(int idPersona) {
-        String sql = "SELECT * FROM cliente WHERE id_persona = ?";
+        String sql = "SELECT c.*, p.documento, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.direccion " +
+                     "FROM cliente c " +
+                     "JOIN persona p ON c.id_persona = p.id_persona " +
+                     "WHERE c.id_persona = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idPersona);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                // Se obtiene primero el objeto Persona asociado
-                Persona persona = new PersonaDAO().obtenerPersonaPorDocumento(rs.getString("documento"));
-
                 // Se construye el objeto Cliente combinando los datos de persona y cliente
                 TipoCliente tipoCliente = TipoCliente.valueOf(rs.getString("tipo_cliente").toUpperCase());
-                return new Cliente(persona.getId_persona(), persona.getDocumento_identidad(), 
-                                   persona.getDireccion(), persona.getEmail(), tipoCliente);
+                Cliente cliente = new Cliente(
+                    rs.getInt("id_persona"),
+                    rs.getString("documento"),
+                    rs.getString("direccion"),
+                    rs.getString("email"),
+                    tipoCliente
+                );
+                cliente.setId_cliente(rs.getInt("id_cliente"));
+                cliente.setFecha_registro(rs.getDate("fecha_registro"));
+                cliente.setTarjeta_credito(rs.getString("tarjeta_credito"));
+                // Puedes añadir más setters si necesitas más datos
+                return cliente;
             }
         } catch (SQLException e) {
             e.printStackTrace(); // En producción sería recomendable registrar este error con un logger

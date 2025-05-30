@@ -114,23 +114,22 @@ public class PersonaDAO {
         return idGenerado;
     }
 
-    // Actualiza los datos de una persona existente en la base de datos
+    // Actualiza los datos de una persona existente en la base de datos (sin modificar el documento)
     public boolean actualizarPersona(Persona persona) {
-        String query = "UPDATE persona SET documento = ?, nombre = ?, apellido = ?, fecha_nacimiento = ?, telefono = ?, email = ?, direccion = ? " +
+        String query = "UPDATE persona SET nombre = ?, apellido = ?, fecha_nacimiento = ?, telefono = ?, email = ?, direccion = ? " +
                        "WHERE id_persona = ?";
 
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement pst = con.prepareStatement(query)) {
             
-            // Asignamos los nuevos valores para la actualización
-            pst.setString(1, persona.getDocumento_identidad());
-            pst.setString(2, persona.getNombre());
-            pst.setString(3, persona.getApellido());
-            pst.setDate(4, new java.sql.Date(persona.getFecha_nacimiento().getTime()));
-            pst.setString(5, persona.getTelefono());
-            pst.setString(6, persona.getEmail());
-            pst.setString(7, persona.getDireccion());
-            pst.setInt(8, persona.getId_persona());
+            // Asignamos los nuevos valores para la actualización (sin documento)
+            pst.setString(1, persona.getNombre());
+            pst.setString(2, persona.getApellido());
+            pst.setDate(3, new java.sql.Date(persona.getFecha_nacimiento().getTime()));
+            pst.setString(4, persona.getTelefono());
+            pst.setString(5, persona.getEmail());
+            pst.setString(6, persona.getDireccion());
+            pst.setInt(7, persona.getId_persona());
 
             // Ejecutamos la actualización
             int rowsAffected = pst.executeUpdate();
@@ -166,58 +165,40 @@ public class PersonaDAO {
         return false;
     }
 
-    // Obtiene un objeto Persona buscando por su ID
-    public Persona obtenerPersonaPorId(int idPersona) {
-        Persona persona = null;
-        String query = "SELECT * FROM persona WHERE id_persona = ?";
-
+    // Método privado reutilizable para obtener una persona por cualquier campo único
+    private Persona obtenerPersonaPorCampo(String campo, Object valor) {
+        String query = "SELECT * FROM persona WHERE " + campo + " = ?";
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement pst = con.prepareStatement(query)) {
-            
-            pst.setInt(1, idPersona);
-
+            pst.setObject(1, valor);
             try (ResultSet rs = pst.executeQuery()) {
                 if (rs.next()) {
-                    persona = new Persona(
-                            rs.getInt("id_persona"),
-                            rs.getString("documento"),
-                            rs.getString("nombre"),
-                            rs.getString("apellido"),
-                            rs.getDate("fecha_nacimiento"),
-                            rs.getString("telefono"),
-                            rs.getString("email"),
-                            rs.getString("direccion")
+                    return new Persona(
+                        rs.getInt("id_persona"),
+                        rs.getString("documento"),
+                        rs.getString("nombre"),
+                        rs.getString("apellido"),
+                        rs.getDate("fecha_nacimiento"),
+                        rs.getString("telefono"),
+                        rs.getString("email"),
+                        rs.getString("direccion")
                     );
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error al obtener persona por ID: " + e.getMessage());
+            System.out.println("Error al obtener persona por " + campo + ": " + e.getMessage());
         }
-        // Retorna la persona encontrada o null si no existe
-        return persona;
+        return null;
+    }
+
+    // Obtiene un objeto Persona buscando por su ID
+    public Persona obtenerPersonaPorId(int idPersona) {
+        return obtenerPersonaPorCampo("id_persona", idPersona);
     }
 
     // Obtiene una persona usando su documento de identidad
     public Persona obtenerPersonaPorDocumento(String documento) {
-        String sql = "SELECT * FROM persona WHERE documento = ?";
-        try (Connection con = DatabaseConnection.getConnection();
-             PreparedStatement stmt = con.prepareStatement(sql)) {
-            
-            stmt.setString(1, documento);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                // Se construye el objeto Persona con los datos obtenidos
-                return new Persona(rs.getInt("id_persona"), 
-                                   rs.getString("documento"),
-                                   rs.getString("direccion"), 
-                                   rs.getString("email"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        // Retorna null si no se encuentra persona con ese documento
-        return null;
+        return obtenerPersonaPorCampo("documento", documento);
     }
 
     // Busca personas cuyo documento comience con el texto dado

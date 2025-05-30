@@ -468,16 +468,16 @@ public class Modelo {
     }
 
     /**
-     * Elimina una reserva (simulación).
+     * Elimina una reserva
      */
-    public boolean eliminarReserva(int idReserva) {
-        // Lógica para eliminar la reserva en la base de datos
-        System.out.println("Reserva eliminada: " + idReserva);
-        return true; // Simulación de éxito
-    }
+ public boolean eliminarReservaFacturada(int idReserva) {
+    ReservaDAO reservaDAO = new ReservaDAO();
+    return reservaDAO.eliminarReservaSiEstaFacturada(idReserva);
+}
+
 
     /**
-     * Crea una reserva (simulación).
+     * Crea una reserva 
      */
     public boolean crearReserva(Reserva reserva) {
         // Lógica para insertar la reserva en la base de datos

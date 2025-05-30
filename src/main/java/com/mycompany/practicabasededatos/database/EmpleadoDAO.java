@@ -145,7 +145,10 @@ public class EmpleadoDAO {
      * @return Objeto Empleado si se encuentra, null si no existe.
      */
     public Empleado obtenerEmpleadoPorIdPersona(int idPersona) {
-        String sql = "SELECT * FROM empleado WHERE id_persona = ?";
+        String sql = "SELECT e.*, p.documento, p.nombre, p.apellido, p.fecha_nacimiento, p.telefono, p.email, p.direccion " +
+                     "FROM empleado e " +
+                     "JOIN persona p ON e.id_persona = p.id_persona " +
+                     "WHERE e.id_persona = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -153,21 +156,22 @@ public class EmpleadoDAO {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                // ⚠️ POSIBLE ERROR: Aquí se intenta obtener el documento pero no se hace un JOIN con 'persona'.
-                PersonaDAO personaDAO = new PersonaDAO();
-                Persona persona = personaDAO.obtenerPersonaPorDocumento(rs.getString("documento"));
-
                 EstadoLaboral estadoLaboral = EstadoLaboral.valueOf(rs.getString("estado_laboral").toUpperCase());
-
-                return new Empleado(
-                    persona.getId_persona(),
-                    persona.getDocumento_identidad(),
-                    persona.getDireccion(),
-                    persona.getEmail(),
-                    rs.getDouble("salario_bruto"),  // ⚠️ Posible error: el campo en la tabla es "salario"
-                    rs.getString("lugar_trabajo"),
-                    estadoLaboral
-                );
+                Empleado empleado = new Empleado();
+                empleado.setId_empleado(rs.getInt("id_empleado"));
+                empleado.setId_persona(rs.getInt("id_persona"));
+                empleado.setDocumento_identidad(rs.getString("documento"));
+                empleado.setNombre(rs.getString("nombre"));
+                empleado.setApellido(rs.getString("apellido"));
+                empleado.setFecha_nacimiento(rs.getDate("fecha_nacimiento"));
+                empleado.setTelefono(rs.getString("telefono"));
+                empleado.setEmail(rs.getString("email"));
+                empleado.setDireccion(rs.getString("direccion"));
+                empleado.setSalario_bruto(rs.getDouble("salario"));
+                empleado.setLugar_trabajo(rs.getString("lugar_trabajo"));
+                empleado.setEstadolaboral(estadoLaboral);
+                empleado.setFecha_contratacion(rs.getDate("fecha_contratacion"));
+                return empleado;
             }
         } catch (SQLException e) {
             e.printStackTrace();

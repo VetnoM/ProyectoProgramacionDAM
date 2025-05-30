@@ -32,7 +32,7 @@
       <Button fx:id="btnCrearReserva" layoutX="673.0" layoutY="447.0" mnemonicParsing="false" onAction="#crearReserva" text="Crear" />
       <Button fx:id="btnGuardarCambios" layoutX="731.0" layoutY="447.0" mnemonicParsing="false" text="Guardar cambios" />
       <Button fx:id="btnFacturar" layoutX="872.0" layoutY="447.0" mnemonicParsing="false" onAction="#abrirVentanaFacturacion" text="Facturar" />
-      <Button fx:id="btnEliminarReserva" layoutX="736.0" layoutY="518.0" mnemonicParsing="false" text="Elminar reserva" />
+      <Button fx:id="btnEliminarReserva" layoutX="736.0" layoutY="518.0" mnemonicParsing="false" onAction="#eliminarReservaFacturada" text="Elminar reserva" />
       <Label layoutX="46.0" layoutY="21.0" text="Reservas">
          <font>
             <Font size="21.0" />

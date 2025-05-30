@@ -81,7 +81,7 @@ public class ModificarUsuarioController {
         }
     
         try {
-            // Buscar la persona en la base de datos
+            // Buscar la persona en la base de datos usando el método optimizado
             personaActual = personaDAO.obtenerPersonaPorDocumento(documento);
             
             if (personaActual == null) {
