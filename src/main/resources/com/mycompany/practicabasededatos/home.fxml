@@ -34,7 +34,6 @@
                   <Menu mnemonicParsing="false" text="Reserva">
                     <items>
                       <MenuItem mnemonicParsing="false" onAction="#cambiarReservas" text="Vista de reservas" />
-                        <MenuItem mnemonicParsing="false" onAction="#cambiarServicios" text="Servicios" />
                     </items>
                   </Menu>
               </menus>
